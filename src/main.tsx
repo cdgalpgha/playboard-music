@@ -27,3 +27,7 @@ createRoot(document.getElementById("root")!).render(
     <App />
   </StrictMode>,
 );
+
+if (import.meta.env.PROD && "serviceWorker" in navigator) {
+  void import("virtual:pwa-register").then(({ registerSW }) => registerSW({ immediate: true }));
+}

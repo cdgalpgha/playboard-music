@@ -2,10 +2,36 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
+import { VitePWA } from "vite-plugin-pwa";
 import { fileURLToPath } from "node:url";
 
 export default defineConfig({
-  plugins: [react(), tailwindcss()],
+  plugins: [
+    react(),
+    tailwindcss(),
+    VitePWA({
+      registerType: "autoUpdate",
+      injectRegister: false,
+      manifest: {
+        name: "Playboard",
+        short_name: "Playboard",
+        description: "Learn piano in the browser with a MIDI keyboard or microphone.",
+        theme_color: "#315e49",
+        background_color: "#f6f7f3",
+        display: "standalone",
+        start_url: "/",
+        icons: [{ src: "/icon.svg", sizes: "any", type: "image/svg+xml", purpose: "any maskable" }],
+      },
+      workbox: {
+        // App shell, lessons, pieces and the pitch model. Piano samples are cached in IndexedDB instead.
+        globPatterns: ["**/*.{js,css,html,svg,woff2,musicxml,json,bin}"],
+        globIgnores: ["samples/**"],
+        maximumFileSizeToCacheInBytes: 8 * 1024 * 1024,
+        navigateFallback: "/index.html",
+        navigateFallbackDenylist: [/^\/samples\//, /^\/models\//],
+      },
+    }),
+  ],
   resolve: {
     alias: { "@": fileURLToPath(new URL("./src", import.meta.url)) },
   },

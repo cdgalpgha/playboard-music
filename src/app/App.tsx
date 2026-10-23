@@ -2,6 +2,7 @@ import { lazy, Suspense, useEffect, type ComponentType, type LazyExoticComponent
 import { BrowserRouter, Route, Routes } from "react-router";
 import { installComputerKeyboard } from "@/input/computer-keyboard.ts";
 import { restoreInputSettings } from "@/input/midi-input.ts";
+import { initCloud } from "@/storage/sync/cloud.ts";
 import { Layout } from "./Layout.tsx";
 import { Home } from "@/ui/pages/Home.tsx";
 
@@ -35,6 +36,7 @@ export function App() {
   useEffect(() => {
     installComputerKeyboard();
     void restoreInputSettings();
+    void initCloud();
   }, []);
   return (
     <BrowserRouter>

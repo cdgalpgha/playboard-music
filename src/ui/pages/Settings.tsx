@@ -7,6 +7,7 @@ import { inputBus } from "@/input/input-bus.ts";
 import { useAudio } from "@/state/audio-store.ts";
 import { setSetting } from "@/storage/db.ts";
 import { setYoutubeApiKey, youtubeApiKey } from "@/storage/sync-maps.ts";
+import { cloudConfigured, sendMagicLink, signOut, syncNow, useCloud } from "@/storage/sync/cloud.ts";
 import { PageHeader, Toggle } from "../controls.tsx";
 import { StartAudioButton } from "../StartAudioButton.tsx";
 
@@ -113,6 +114,8 @@ export default function Settings() {
           <p className="text-xs text-muted">The key is kept in this browser only.</p>
         </section>
 
+        <AccountSection />
+
         <section className="card space-y-4" aria-labelledby="monitor-title">
           <h2 id="monitor-title" className="text-base font-bold">
             Input sound
@@ -130,5 +133,68 @@ export default function Settings() {
         </section>
       </div>
     </div>
+  );
+}
+
+function AccountSection() {
+  const user = useCloud((s) => s.user);
+  const status = useCloud((s) => s.status);
+  const message = useCloud((s) => s.message);
+  const lastSync = useCloud((s) => s.lastSync);
+  const [email, setEmail] = useState("");
+  return (
+    <section className="card space-y-3" aria-labelledby="account-title">
+      <h2 id="account-title" className="text-base font-bold">
+        Account and sync
+      </h2>
+      {!cloudConfigured ? (
+        <p className="text-sm text-muted">
+          Cloud sync is not set up on this build, so everything stays on this device. To turn it on, set
+          VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY and apply supabase/schema.sql.
+        </p>
+      ) : user ? (
+        <>
+          <p className="text-sm">
+            Signed in as <strong>{user.email}</strong>. Progress, imported songs and video sync maps sync across your
+            devices.
+          </p>
+          <div className="flex flex-wrap gap-2">
+            <button type="button" className="btn-primary" disabled={status === "syncing"} onClick={() => void syncNow()}>
+              {status === "syncing" ? "Syncing…" : "Sync now"}
+            </button>
+            <button type="button" className="btn-ghost" onClick={() => void signOut()}>
+              Sign out
+            </button>
+          </div>
+        </>
+      ) : (
+        <form
+          className="flex flex-wrap gap-2"
+          onSubmit={(e) => {
+            e.preventDefault();
+            if (email) void sendMagicLink(email);
+          }}
+        >
+          <label className="sr-only" htmlFor="account-email">
+            Email
+          </label>
+          <input
+            id="account-email"
+            type="email"
+            required
+            autoComplete="email"
+            className="input-select min-w-56 flex-1"
+            placeholder="you@example.com"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+          />
+          <button className="btn-secondary">Email me a sign-in link</button>
+        </form>
+      )}
+      <p className="text-xs text-muted" aria-live="polite">
+        {message}
+        {lastSync ? `${message ? " · " : ""}Last synced ${new Date(lastSync).toLocaleString()}` : ""}
+      </p>
+    </section>
   );
 }
