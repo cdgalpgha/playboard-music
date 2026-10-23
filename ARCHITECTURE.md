@@ -27,12 +27,12 @@ src/
   core/                    Pure logic (unit tested)
     chart.ts               Chart / ChartNote / Measure types + helpers
     tempo-map.ts           ticks <-> seconds, beats <-> seconds
-    transport.ts           chart-time clock (audio-master or video-master)
+    transport.ts           practice clock: rate, loops (τ axis), wait-for-me holds
     scoring.ts             ScoringEngine: note matching, judgements, stats
     sync-map.ts            video seconds <-> chart seconds (anchors + offset)
     video-clock.ts         interpolated YouTube clock with drift correction
     calibration.ts         tap analysis -> audio/input offsets
-    practice.ts            loop ranges, hand filters, wait-for-me gate
+    practice.ts            onset groups and the wait-for-me gate
     transforms.ts          transpose, tempo scaling of charts
     keyboard-range.ts      key-count detection (25..88)
     midi-message.ts        raw MIDI bytes -> typed messages
@@ -54,10 +54,13 @@ src/
     mic/                   microphone capture + Basic Pitch worker
   formats/
     midi-file.ts           Standard MIDI File parser -> Chart
-    musicxml.ts            MusicXML parser -> Chart (+ measure geometry)
+    musicxml.ts            MusicXML parser -> Chart (repeats expanded, source measure kept)
+    musicxml-writer.ts     compact notation -> MusicXML, for authoring built-in content
+  practice/
+    session.ts             PracticeSession: transport + look-ahead scheduler + scoring + input
   content/
-    catalog.ts             CatalogProvider interface + registry
-    builtin/               public-domain and original lessons/songs (JSON)
+    catalog.ts             CatalogProvider interface + registry (refuses unlicensed items)
+    builtin/*.json         generated catalog metadata
     user-library.ts        imported files, private, IndexedDB only
   video/
     youtube-api.ts         IFrame API loader + typed player adapter
@@ -72,8 +75,13 @@ src/
   ui/                      React components and pages
 public/
   samples/<tier>/          Opus sample files + manifest.json
-  content/                 MusicXML files for built-in lessons and songs
+  content/                 generated MusicXML for built-in lessons and pieces
+content/                   built-in content sources (compact notation + metadata)
+scripts/build-content.ts   writes public/content and src/content/builtin, round-trip checked
 ```
+
+Modules in `core/` and `formats/` use relative imports so `scripts/` can run
+them directly with Node's TypeScript type stripping.
 
 ## 3. Data flow
 
@@ -163,13 +171,22 @@ converts from ticks/divisions). Practice tempo `rate` (0.25–1.5) scales time:
 the transport advances `rate` chart-seconds per real second.
 
 ### 6.2 Transport
-`Transport` exposes `chartTimeAt(perfMs)` and `now()`. It has two masters:
+`Transport` runs on a monotonic axis τ that advances `rate` chart-seconds per
+real second. Without a loop, chart time = τ. With a loop `[from, to)` of
+length L, pass k ≥ 1 maps τ = chart + k·L, so scheduling and drawing never
+jump backwards; `segments(τa, τb)` splits any window at loop wraps. Wait-for-me
+sets a hold point: τ stops there until the onset group is played.
 
-- **Audio master** (no video). Anchors are taken from
+Wall time is `performance.now()` of the moment something is heard or seen.
+
+- **Audio master** (no video). `engine.contextTimeFor(perf)` uses
   `AudioContext.getOutputTimestamp()`, which pairs a context time with the
-  `performance.now()` at which that frame reaches the speaker. Chart notes
-  for auto-play are scheduled in context time; visuals use the same mapping,
-  so a note hits the line when it is heard.
+  `performance.now()` at which that frame reaches the speaker. Auto-played
+  notes and clicks are scheduled 150 ms ahead at
+  `contextTimeFor(transport.perfAt(τ) − audioOffsetMs)`; visuals draw τ at
+  `performance.now()`, so a note reaches the line when it is heard. Pausing
+  sends `cancelScheduled` to the worklet, which drops queued events without
+  cutting notes the player is holding.
 - **Video master**. `VideoClock` polls `player.getCurrentTime()` every 100 ms.
   Between polls it extrapolates `t = t_poll + (perfNow - perf_poll)/1000 * playbackRate`.
   On each poll the error `e = polled - predicted` is corrected: `|e| > 300 ms`
@@ -210,8 +227,10 @@ with the smallest |Δt| inside the miss window. Judgement by |Δt|:
 | early/late | ≤ 180 ms  |
 | miss     | expected note passed by > 180 ms unmatched |
 
-Windows scale with `1/rate` at slow tempos, capped at 1.5×. A note-on with no
-candidate is a *wrong note*. Velocity consistency is 1 − (coefficient of
+Δt is real time: chart Δt divided by the practice rate. Windows scale with
+`1/rate` at slow tempos, capped at 1.5×. A note-on with no candidate is a
+*wrong note*. Accuracy weights: perfect 1, good 0.85, early/late 0.5, miss 0,
+and each wrong note subtracts 0.25. Velocity consistency is 1 − (coefficient of
 variation of velocities within each phrase of equal dynamic marking), averaged.
 Session output: counts per judgement, accuracy %, signed timing histogram
 (10 ms bins), per-measure error totals (weak spots), per-hand accuracy.

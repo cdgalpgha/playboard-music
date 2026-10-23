@@ -10,6 +10,8 @@ import { PageHeader } from "../controls.tsx";
 import { Icon } from "../Icon.tsx";
 import { PianoKeyboard } from "../PianoKeyboard.tsx";
 import { StartAudioButton } from "../StartAudioButton.tsx";
+import { Calibration } from "../Calibration.tsx";
+import { useOffsets } from "@/storage/devices.ts";
 
 function Step({ n, title, done, children }: { n: number; title: string; done: boolean; children: ReactNode }) {
   return (
@@ -238,17 +240,29 @@ function NoteTestStep() {
   );
 }
 
+function CalibrationStep() {
+  const calibrated = useOffsets((s) => s.record !== null);
+  return (
+    <Step n={5} title="Calibrate timing" done={calibrated}>
+      <Calibration />
+    </Step>
+  );
+}
+
 export default function Setup() {
   return (
     <div className="pb-12">
       <PageHeader eyebrow="Device setup" title="Set up your piano">
-        Four quick checks so sound, input and timing are right before you practise.
+        Five quick checks so sound, input and timing are right before you practise.
       </PageHeader>
       <div className="grid gap-4 px-4 lg:px-8 xl:grid-cols-2">
         <AudioStep />
         <InputStep />
         <RangeStep />
         <NoteTestStep />
+        <div className="xl:col-span-2">
+          <CalibrationStep />
+        </div>
       </div>
     </div>
   );

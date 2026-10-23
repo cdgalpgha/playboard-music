@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect } from "react";
+import { lazy, Suspense, useEffect, type ComponentType, type LazyExoticComponent } from "react";
 import { BrowserRouter, Route, Routes } from "react-router";
 import { installComputerKeyboard } from "@/input/computer-keyboard.ts";
 import { restoreInputSettings } from "@/input/midi-input.ts";
@@ -6,16 +6,24 @@ import { Layout } from "./Layout.tsx";
 import { Home } from "@/ui/pages/Home.tsx";
 
 const FreePlay = lazy(() => import("@/ui/pages/FreePlay.tsx"));
+const Pieces = lazy(() => import("@/ui/pages/Pieces.tsx"));
+const Piece = lazy(() => import("@/ui/pages/Piece.tsx"));
 const Setup = lazy(() => import("@/ui/pages/Setup.tsx"));
 const Settings = lazy(() => import("@/ui/pages/Settings.tsx"));
 const About = lazy(() => import("@/ui/pages/About.tsx"));
 const NotFound = lazy(() => import("@/ui/pages/NotFound.tsx"));
 
-function PageFallback() {
+function page(Component: LazyExoticComponent<ComponentType>) {
   return (
-    <div className="p-8 text-sm text-muted" role="status">
-      Loading…
-    </div>
+    <Suspense
+      fallback={
+        <div className="p-8 text-sm text-muted" role="status">
+          Loading…
+        </div>
+      }
+    >
+      <Component />
+    </Suspense>
   );
 }
 
@@ -29,46 +37,13 @@ export function App() {
       <Routes>
         <Route element={<Layout />}>
           <Route index element={<Home />} />
-          <Route
-            path="play"
-            element={
-              <Suspense fallback={<PageFallback />}>
-                <FreePlay />
-              </Suspense>
-            }
-          />
-          <Route
-            path="setup"
-            element={
-              <Suspense fallback={<PageFallback />}>
-                <Setup />
-              </Suspense>
-            }
-          />
-          <Route
-            path="settings"
-            element={
-              <Suspense fallback={<PageFallback />}>
-                <Settings />
-              </Suspense>
-            }
-          />
-          <Route
-            path="about"
-            element={
-              <Suspense fallback={<PageFallback />}>
-                <About />
-              </Suspense>
-            }
-          />
-          <Route
-            path="*"
-            element={
-              <Suspense fallback={<PageFallback />}>
-                <NotFound />
-              </Suspense>
-            }
-          />
+          <Route path="play" element={page(FreePlay)} />
+          <Route path="pieces" element={page(Pieces)} />
+          <Route path="pieces/:id" element={page(Piece)} />
+          <Route path="setup" element={page(Setup)} />
+          <Route path="settings" element={page(Settings)} />
+          <Route path="about" element={page(About)} />
+          <Route path="*" element={page(NotFound)} />
         </Route>
       </Routes>
     </BrowserRouter>

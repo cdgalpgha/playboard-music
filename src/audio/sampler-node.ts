@@ -70,6 +70,10 @@ export class SamplerNode {
     this.post({ type: "allOff" });
   }
 
+  cancelScheduled(): void {
+    this.post({ type: "cancelScheduled" });
+  }
+
   setParams(params: Partial<SamplerParams>): void {
     this.post({ type: "params", params });
   }

@@ -74,6 +74,8 @@ export type ToWorklet =
   | { type: "noteOff"; note: number; when?: number }
   | { type: "pedal"; value: number; when?: number }
   | { type: "allOff" }
+  /** Drops queued (future) events without touching voices that are already sounding. */
+  | { type: "cancelScheduled" }
   | { type: "params"; params: Partial<SamplerParams> };
 
 export type FromWorklet =

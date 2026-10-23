@@ -221,6 +221,9 @@ export class SamplerCore {
       case "params":
         this.params = { ...this.params, ...msg.params };
         return;
+      case "cancelScheduled":
+        this.queue = this.queue.filter((e) => e.frame <= frame);
+        return;
       default: {
         const when = "when" in msg && msg.when !== undefined ? Math.round(msg.when * this.sampleRate) : frame;
         const ev = { frame: Math.max(frame, when), seq: this.seq++, msg };

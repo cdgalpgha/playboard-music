@@ -83,3 +83,48 @@ keys at phone width are too narrow to touch.
 
 **D15. A dev-only `window.__pb` handle** exposes stores to the end-to-end tests.
 It is behind `import.meta.env.DEV` and absent from production builds.
+
+## Practice and scoring
+
+**D16. The MusicXML parser moved forward from milestone 3 to 2.** Practice
+needs real charts, and building a throwaway format first would mean two
+parsers. Built-in content is written in a compact notation
+(`content/*.ts`), turned into MusicXML by `scripts/build-content.ts`, and
+read back through the same parser the app uses; the build fails if a file
+does not round-trip.
+
+**D17. Two pieces ship with milestone 2:** Ode to Joy (Beethoven) and the
+Minuet in G (Petzold, BWV Anh. 114, first half). Both compositions are public
+domain; the arrangements are original to Playboard. In Ode to Joy the low G
+of bar 12 is a left-hand thumb note, as in common beginner books, so the right
+hand stays in C position.
+
+**D18. Timing is judged in real time.** At half tempo, 50 ms of chart time is
+100 ms of the player's time, and that is what is judged. Windows widen at slow
+tempos (×1/rate, capped at 1.5×) because slow practice is for learning
+notes. Wrong notes cost a quarter of a correct note so that mashing keys
+cannot raise a score.
+
+**D19. One bar of count-in in timed mode, none in wait-for-me mode**, which
+waits at the first chord anyway.
+
+**D20. Changing tempo, hands or modes while playing restarts scoring from the
+current position**, so a run's result always describes one set of
+conditions. Each loop pass gets its own summary.
+
+**D21. D.C., D.S. and coda jumps are played straight through.** Repeats and
+volta endings are expanded. Jump instructions are rare in beginner material;
+supporting them is left for licensed catalogs that need it.
+
+**D22. Velocity consistency** is 1 minus the mean coefficient of variation of
+played velocities among notes marked at the same dynamic (groups of four or
+more). It measures evenness, not whether the player followed the dynamics.
+
+**D23. Calibration uses 4 count-in beats and 16 scored beats at 100 BPM per
+pass**, any input counts as a tap (key, pedal, Space, the on-screen pad), and
+taps more than 2.5 median absolute deviations from the median are dropped.
+At least 8 must remain. Offsets are stored per input-device/output-device pair.
+
+**D24. Slowing down never changes pitch.** Charts are rendered by the sampler,
+so tempo changes only move note times. For YouTube play-along (milestone 5),
+YouTube's player keeps pitch at reduced speed.

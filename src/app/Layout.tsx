@@ -5,6 +5,7 @@ import { Banners } from "./Banners.tsx";
 
 const NAV: { to: string; label: string; icon: IconName }[] = [
   { to: "/play", label: "Free play", icon: "piano" },
+  { to: "/pieces", label: "Pieces", icon: "songs" },
   { to: "/setup", label: "Device setup", icon: "midi" },
   { to: "/settings", label: "Settings", icon: "settings" },
   { to: "/about", label: "About", icon: "info" },

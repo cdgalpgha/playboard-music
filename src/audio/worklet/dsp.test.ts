@@ -160,6 +160,16 @@ describe("SamplerCore", () => {
     expect(run(core, 0, 4).energy).toBeGreaterThan(0);
   });
 
+  it("cancelScheduled drops future events but keeps sounding voices", () => {
+    const core = makeCore();
+    core.post({ type: "noteOn", note: 60, velocity: 90 }, 0);
+    core.post({ type: "noteOn", note: 69, velocity: 90, when: 0.5 }, 0);
+    run(core, 0, 2);
+    core.post({ type: "cancelScheduled" }, 256);
+    run(core, 256, Math.ceil((0.8 * SR) / 128));
+    expect(core.activeVoices().notes).toBe(1);
+  });
+
   it("all-notes-off silences everything quickly", () => {
     const core = makeCore();
     for (const n of [59, 60, 61, 68, 69]) core.post({ type: "noteOn", note: n, velocity: 100 }, 0);
