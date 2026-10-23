@@ -95,6 +95,44 @@ class TapProcessor extends AudioWorkletProcessor {
   }
 }
 
+/**
+ * Microphone capture for pitch detection. Sends mono blocks, with the context
+ * frame of their first sample, through a MessagePort straight to the worker.
+ */
+class CaptureProcessor extends AudioWorkletProcessor {
+  private out: MessagePort | null = null;
+  private block = new Float32Array(4096);
+  private fill = 0;
+  private blockStart = 0;
+
+  constructor() {
+    super();
+    this.port.onmessage = (e: MessageEvent<{ type: "port" | "stop" }>) => {
+      if (e.data.type === "port") this.out = e.ports[0] ?? null;
+      else this.out = null;
+    };
+  }
+
+  override process(inputs: Float32Array[][]): boolean {
+    const input = inputs[0];
+    if (!this.out || !input || !input[0]) return true;
+    const a = input[0],
+      b = input[1];
+    for (let i = 0; i < a.length; i++) {
+      if (this.fill === 0) this.blockStart = currentFrame + i;
+      this.block[this.fill++] = b ? (a[i]! + b[i]!) * 0.5 : a[i]!;
+      if (this.fill === this.block.length) {
+        const samples = this.block;
+        // Date.now() lets the worker tell queued (stale) blocks from fresh ones.
+        this.out.postMessage({ type: "audio", samples, frame: this.blockStart, rate: sampleRate, postedAt: Date.now() }, [samples.buffer]);
+        this.block = new Float32Array(4096);
+        this.fill = 0;
+      }
+    }
+    return true;
+  }
+}
+
 function toInt16(x: number): number {
   const c = x < -1 ? -1 : x > 1 ? 1 : x;
   return c < 0 ? c * 32768 : c * 32767;
@@ -102,3 +140,4 @@ function toInt16(x: number): number {
 
 registerProcessor("playboard-sampler", SamplerProcessor);
 registerProcessor("playboard-tap", TapProcessor);
+registerProcessor("playboard-capture", CaptureProcessor);

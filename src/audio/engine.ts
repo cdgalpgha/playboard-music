@@ -93,6 +93,7 @@ class AudioEngine {
 
   private async create(): Promise<void> {
     audioStore.setState({ status: "starting", error: null });
+    setAudioSession("playback");
     try {
       const ctx = new AudioContext({ latencyHint: "interactive" });
       this.ctx = ctx;
@@ -272,6 +273,20 @@ class AudioEngine {
   allOff(): void {
     this.sampler?.allOff();
     this.sampler?.pedal(0);
+  }
+}
+
+/**
+ * iOS Safari 17+: without an explicit session type, Web Audio follows the ringer
+ * switch and a silenced phone plays nothing. "play-and-record" is needed while
+ * the microphone is on.
+ */
+export function setAudioSession(type: "playback" | "play-and-record"): void {
+  const nav = navigator as Navigator & { audioSession?: { type: string } };
+  try {
+    if (nav.audioSession) nav.audioSession.type = type;
+  } catch {
+    /* not supported */
   }
 }
 

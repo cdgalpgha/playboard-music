@@ -7,6 +7,8 @@ import { emptyCounts, ScoringEngine, type Judgement, type SessionSummary } from 
 import { Transport, type Segment, type TransportLike } from "@/core/transport.ts";
 import { inputBus, type NoteEvent } from "@/input/input-bus.ts";
 import { offsetStore } from "@/storage/devices.ts";
+import { inputStore } from "@/state/input-store.ts";
+import { micScoringLagSec } from "@/input/mic/mic-input.ts";
 import { db } from "@/storage/db.ts";
 
 /** How far ahead auto-played notes and clicks are scheduled, in real seconds. */
@@ -375,7 +377,9 @@ export class PracticeSession {
     this.flushOffs(horizon);
 
     if (this.scoring) {
-      const missed = this.scoring.advance(chart);
+      // Microphone notes arrive about half a second after they sound; wait for them before calling a miss.
+      const lag = inputStore.getState().mode === "mic" ? micScoringLagSec() * this.transport.rate : 0;
+      const missed = this.scoring.advance(chart - lag);
       if (missed.length) {
         const live = { ...this.state.live, counts: { ...this.state.live.counts } };
         live.counts.miss += missed.length;

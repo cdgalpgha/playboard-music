@@ -235,3 +235,22 @@ milliseconds. Against a stale 250 ms source the smoothed clock is off by
 **D44. Sync maps are stored per song and per video** (`syncMaps` store), as
 anchors plus an offset in milliseconds. Positive offsets make the notes later
 than the video.
+
+## Microphone and platforms
+
+**D45. Basic Pitch runs on TF.js core + WebGL (CPU fallback) in a worker,** fed
+straight from a capture worklet over a MessageChannel. Readback is synchronous
+(`dataSync`) because the WebGL backend's async readback uses `window`.
+
+**D46. Windows are chosen by position**: each analysis ends at most ~1.8 s after
+the last, so windows always overlap; stale queued blocks (stamped with
+`Date.now()` in the worklet) are appended without analysing. Only past a 6 s
+backlog does the detector skip ahead, and the UI says so.
+
+**D47. Mic notes are stamped with capture time, and misses wait for the measured
+detection delay**, so late detections still score fairly. The UI labels mic
+input "less accurate" everywhere it is active.
+
+**D48. iOS audio session** is set to `playback` (and `play-and-record` with the
+mic) so the ringer switch does not mute the piano. Native MIDI on iOS/Safari is
+documented in `docs/native-ios.md` (Capacitor + CoreMIDI), not built.

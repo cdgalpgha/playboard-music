@@ -5,6 +5,7 @@ import { useAudio } from "@/state/audio-store.ts";
 import { useInput } from "@/state/input-store.ts";
 import { Icon } from "@/ui/Icon.tsx";
 import { StartAudioButton } from "@/ui/StartAudioButton.tsx";
+import { startMic, stopMic } from "@/input/mic/mic-input.ts";
 
 function Bar({ tone, children }: { tone: "info" | "warn" | "error"; children: React.ReactNode }) {
   const styles = {
@@ -34,6 +35,7 @@ export function Banners() {
   const output = useAudio((s) => s.output);
   const outputChanged = useAudio((s) => s.outputChanged);
   const midiStatus = useInput((s) => s.midiStatus);
+  const micStatus = useInput((s) => s.mic.status);
   const [noMidiDismissed, setNoMidiDismissed] = useState(() => readDismissed("pb-nomidi-dismissed"));
 
   return (
@@ -84,9 +86,15 @@ export function Banners() {
         <Bar tone="warn">
           <Icon name="midi" />
           <span className="flex-1">
-            This browser has no Web MIDI (Safari on macOS and every browser on iOS). Play with the on-screen keys or
-            your computer keyboard, or use Chrome or Edge on a computer for a USB keyboard.
+            This browser has no Web MIDI (Safari on macOS and every browser on iOS), so a USB keyboard cannot connect.
+            Playboard can listen to your piano through the microphone instead (less accurate), or you can use the
+            on-screen keys. For MIDI, use Chrome or Edge on a computer.
           </span>
+          {micStatus === "off" && (
+            <button type="button" className="btn-secondary py-1.5" onClick={() => void startMic()}>
+              Use the microphone
+            </button>
+          )}
           <button
             type="button"
             className="btn-ghost py-1.5"
@@ -100,6 +108,18 @@ export function Banners() {
             }}
           >
             Dismiss
+          </button>
+        </Bar>
+      )}
+      {(micStatus === "listening" || micStatus === "starting") && (
+        <Bar tone="info">
+          <Icon name="mic" />
+          <span className="flex-1">
+            Listening through the microphone · less accurate. Notes are recognised about half a second late; use
+            headphones so Playboard's own sound is not picked up.
+          </span>
+          <button type="button" className="btn-ghost py-1.5" onClick={stopMic}>
+            Stop
           </button>
         </Bar>
       )}

@@ -106,6 +106,8 @@ export function PracticePlayer({
   const inputOffset = useOffsets((x) => x.inputOffsetMs);
   const calibrated = useOffsets((x) => x.record !== null);
   const userRange = useInput((x) => x.range);
+  const micMode = useInput((x) => x.mode === "mic" && x.mic.status === "listening");
+  const micDelay = useInput((x) => x.mic.delayMs);
   const reducedMotion = useMediaQuery("(prefers-reduced-motion: reduce)");
   const [expected, setExpected] = useState<Map<number, Hand>>(new Map());
   const [secondsAhead, setSecondsAhead] = useState(3);
@@ -258,6 +260,11 @@ export function PracticePlayer({
               ))}
               <span>Wrong {live.wrong}</span>
             </>
+          )}
+          {micMode && (
+            <span className="rounded-md bg-warn-soft px-2 py-0.5 font-semibold text-[#6e3d10]" title="Notes are recognised from sound">
+              Mic input · less accurate{micDelay ? ` · ${micDelay} ms behind` : ""}
+            </span>
           )}
           <span className="ml-auto">
             {calibrated ? `Input offset ${inputOffset.toFixed(0)} ms` : "Not calibrated"}

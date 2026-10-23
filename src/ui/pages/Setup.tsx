@@ -11,6 +11,7 @@ import { Icon } from "../Icon.tsx";
 import { PianoKeyboard } from "../PianoKeyboard.tsx";
 import { StartAudioButton } from "../StartAudioButton.tsx";
 import { Calibration } from "../Calibration.tsx";
+import { MicPanel } from "../MicPanel.tsx";
 import { useOffsets } from "@/storage/devices.ts";
 
 function Step({ n, title, done, children }: { n: number; title: string; done: boolean; children: ReactNode }) {
@@ -90,12 +91,13 @@ function InputStep() {
   const devices = useInput((s) => s.devices);
   const selectedId = useInput((s) => s.selectedId);
   const connected = devices.filter((d) => d.connected);
+  const micListening = useInput((s) => s.mic.status === "listening");
   return (
-    <Step n={2} title="Connect your keyboard" done={midiStatus === "ready" && connected.length > 0}>
+    <Step n={2} title="Connect your keyboard" done={(midiStatus === "ready" && connected.length > 0) || micListening}>
       {midiStatus === "unsupported" && (
         <p>
           This browser has no Web MIDI. Safari on macOS and all browsers on iOS do not support it. Use Chrome or Edge
-          on a computer to connect a USB keyboard, or play with the on-screen keys and your computer keyboard.
+          on a computer to connect a USB keyboard, or let Playboard listen through the microphone below.
         </p>
       )}
       {(midiStatus === "idle" || midiStatus === "requesting") && (
@@ -139,6 +141,9 @@ function InputStep() {
         No keyboard? Computer keys <span className="kbd">A</span> to <span className="kbd">'</span> play a white-key
         row from C, the row above plays sharps, <span className="kbd">Space</span> is the sustain pedal.
       </p>
+      <div className="border-t border-line pt-3">
+        <MicPanel />
+      </div>
     </Step>
   );
 }
