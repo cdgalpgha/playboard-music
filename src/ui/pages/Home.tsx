@@ -17,6 +17,21 @@ const FEATURES: { icon: IconName; title: string; text: string }[] = [
     title: "Measured, not guessed",
     text: "Every note you play reports its key-to-sound latency, so you can see what your setup really does.",
   },
+  {
+    icon: "learn",
+    title: "Lessons and falling notes",
+    text: "Ten step-by-step lessons, falling notes and sheet music side by side, with wait mode, loops, slow-down and per-note scoring.",
+  },
+  {
+    icon: "youtube",
+    title: "Play along with videos",
+    text: "Find a song on YouTube and play over it in the official player, credited to the channel that posted it.",
+  },
+  {
+    icon: "progress",
+    title: "Works offline, tracks progress",
+    text: "Install it as an app. Your streak and practice time stay on this device, with optional sync to your account.",
+  },
 ];
 
 export function Home() {

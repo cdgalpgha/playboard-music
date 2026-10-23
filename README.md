@@ -4,7 +4,8 @@ A browser app for learning and playing piano: a sampled concert grand on an
 AudioWorklet engine, Web MIDI input with velocity and sustain pedal, and
 practice tools built around measured timing.
 
-Status: milestone 1 of 7 (audio engine, keyboard, MIDI, free play). See
+Status: all 7 milestones built (sound, practice, lessons, import, YouTube
+play-along, microphone input, progress/sync/offline). See
 `docs/reports/` for per-milestone reports, `ARCHITECTURE.md` for how it fits
 together and `DECISIONS.md` for the choices behind it.
 

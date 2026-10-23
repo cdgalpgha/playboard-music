@@ -254,3 +254,28 @@ input "less accurate" everywhere it is active.
 **D48. iOS audio session** is set to `playback` (and `play-and-record` with the
 mic) so the ringer switch does not mute the piano. Native MIDI on iOS/Safari is
 documented in `docs/native-ios.md` (Capacitor + CoreMIDI), not built.
+
+## Progress, accounts and offline
+
+**D49. Progress is derived from stored sessions**, not kept as separate counters.
+Streak, daily minutes and skill trends are computed from the `sessions` store
+(`src/core/progress-math.ts`), so they can never drift from what was played.
+The daily goal defaults to 10 minutes and is a setting.
+
+**D50. Cloud sync is optional and off unless configured.** Without
+`VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` the app is fully local and says
+so in Settings. With them, sign-in is an email magic link (no passwords stored),
+and records live in one `playboard_records` table guarded by row-level security
+(`supabase/schema.sql`). No hosted backend was invented for this repo; it ships
+with sync disabled.
+
+**D51. Merge is last-writer-wins per record, with deletions as tombstones**
+(`src/storage/sync/merge.ts`). Sessions are append-only, so conflicts only
+arise for settings, user songs and sync maps, where the newest edit is the
+expected result. The YouTube API key, sample tier and MIDI device choice are
+device-specific and never leave the device.
+
+**D52. The service worker precaches the app shell, lessons, pieces and the
+pitch model, but not piano samples.** Samples are already cached in IndexedDB
+per tier, and precaching them would download Studio for
+everyone. After the first visit with audio started, the app works offline.
