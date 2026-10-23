@@ -24,6 +24,11 @@ export interface InputState {
   /** Computer-keyboard base octave (C of this octave sits on the A key). */
   qwertyOctave: number;
   qwertyVelocity: number;
+  /** Computer keys play chords (A–G, Shift minor, Space sharp) or single notes. */
+  qwertyMode: "chords" | "notes";
+  /** Chord keys only apply on pages that turn them on (free play); lessons always use single notes. */
+  chordKeysActive: boolean;
+  lastChord: string;
   lastMidi: { note: number; velocity: number; device: string; at: number } | null;
   mic: {
     status: MicStatus;
@@ -54,6 +59,9 @@ export const inputStore = createStore<InputState>(() => ({
   mode: hasMidi ? "midi" : "mic",
   qwertyOctave: 4,
   qwertyVelocity: 88,
+  qwertyMode: "chords",
+  chordKeysActive: false,
+  lastChord: "",
   lastMidi: null,
   mic: {
     status: typeof navigator !== "undefined" && "mediaDevices" in navigator ? "off" : "unsupported",

@@ -279,3 +279,9 @@ device-specific and never leave the device.
 pitch model, but not piano samples.** Samples are already cached in IndexedDB
 per tier, and precaching them would download Studio for
 everyone. After the first visit with audio started, the app works offline.
+
+**D53. Chord mode from Playboard v0.2 is back, and it's the default in free play.**
+A–G plays a major triad, Shift+letter minor, Space+letter raises the root a
+semitone (`src/core/chords.ts`). Piano mode keeps the chromatic A–' layout with
+Space as sustain. Lessons and pieces always use single notes, because chord
+keys would score as wrong notes there.

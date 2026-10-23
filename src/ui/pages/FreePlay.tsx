@@ -5,6 +5,7 @@ import { Metronome } from "@/audio/metronome.ts";
 import { recorder, Recorder, MAX_TAKE_SECONDS, type Take } from "@/audio/recorder.ts";
 import { TIER_LABELS } from "@/audio/samples/manifest.ts";
 import { inputBus } from "@/input/input-bus.ts";
+import { enableChordKeys } from "@/input/computer-keyboard.ts";
 import { visibleRange, FULL_RANGE } from "@/core/keyboard-range.ts";
 import { useAudio } from "@/state/audio-store.ts";
 import { inputStore, useInput } from "@/state/input-store.ts";
@@ -207,6 +208,10 @@ export default function FreePlay() {
   const midiDevices = devices.filter((d) => d.connected);
   const qwertyOctave = useInput((s) => s.qwertyOctave);
   const qwertyVelocity = useInput((s) => s.qwertyVelocity);
+  const qwertyMode = useInput((s) => s.qwertyMode);
+  const lastChord = useInput((s) => s.lastChord);
+  useEffect(() => enableChordKeys(), []);
+  const chords = qwertyMode === "chords";
   const [mix, setMix] = useState<MixSettings>(() => engine.getMix());
   const [full, setFull] = useState(range.keys === 88);
   useEffect(() => {
@@ -240,6 +245,11 @@ export default function FreePlay() {
               <div className="text-[11px] font-semibold tracking-[0.14em] text-white/50 uppercase">
                 {TIER_LABELS[tier].name} tier · {voices} voices
               </div>
+              {chords && (
+                <div className="text-2xl font-bold" aria-live="polite" data-testid="current-chord">
+                  {lastChord || "Press A–G"}
+                </div>
+              )}
               <HeldNotes />
             </div>
             <OutputMeter />
@@ -248,7 +258,7 @@ export default function FreePlay() {
           <PianoKeyboard
             low={view.low}
             high={view.high}
-            labels="c"
+            labels={chords ? "chords" : "c"}
             qwertyOctave={qwertyOctave}
             className="h-44 sm:h-52"
           />
@@ -271,11 +281,35 @@ export default function FreePlay() {
           <span>
             {midiDevices.length ? `MIDI: ${midiDevices.map((d) => d.name).join(", ")}` : "No MIDI keyboard connected"}
           </span>
-          <span>
-            Computer keys <span className="kbd">A</span>–<span className="kbd">'</span> play from C{qwertyOctave},{" "}
-            <span className="kbd">Z</span>/<span className="kbd">X</span> octave, <span className="kbd">Space</span>{" "}
-            sustain
-          </span>
+          <div className="inline-flex rounded-lg border border-line bg-white p-0.5" role="group" aria-label="Computer keys">
+            {(["chords", "notes"] as const).map((m) => (
+              <button
+                key={m}
+                type="button"
+                aria-pressed={qwertyMode === m}
+                className={`rounded-md px-3 py-1 font-semibold ${qwertyMode === m ? "bg-green text-white" : "text-ink-soft"}`}
+                onClick={(e) => {
+                  inputStore.setState({ qwertyMode: m, lastChord: "" });
+                  e.currentTarget.blur();
+                }}
+              >
+                {m === "chords" ? "Chord mode" : "Piano mode"}
+              </button>
+            ))}
+          </div>
+          {chords ? (
+            <span>
+              <span className="kbd">A</span>–<span className="kbd">G</span> major, <span className="kbd">Shift</span> +
+              key minor, <span className="kbd">Space</span> + key sharp, <span className="kbd">Z</span>/
+              <span className="kbd">X</span> octave (C{qwertyOctave})
+            </span>
+          ) : (
+            <span>
+              Computer keys <span className="kbd">A</span>–<span className="kbd">'</span> play from C{qwertyOctave},{" "}
+              <span className="kbd">Z</span>/<span className="kbd">X</span> octave, <span className="kbd">Space</span>{" "}
+              sustain
+            </span>
+          )}
           {range.keys !== 88 && (
             <button type="button" className="underline" onClick={() => setFull(!full)}>
               {full ? `Show my ${range.keys} keys` : "Show all 88 keys"}

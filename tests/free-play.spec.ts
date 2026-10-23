@@ -73,9 +73,34 @@ test("on-screen keys play and release with the pointer", async ({ page }) => {
   await expect(e4).toHaveAttribute("aria-pressed", "false");
 });
 
-test("computer keyboard plays notes and space holds the pedal", async ({ page }) => {
+test("chord mode: letters play major chords, Shift minor, Space sharp", async ({ page }) => {
   await page.goto("/play");
   await startAudio(page);
+  await page.locator("main").click({ position: { x: 5, y: 5 } });
+  const key = (name: string) => page.getByRole("button", { name, exact: true }).first();
+  await page.keyboard.down("d");
+  for (const n of ["D4", "F♯4", "A4"]) await expect(key(n)).toHaveAttribute("aria-pressed", "true");
+  await expect(page.getByTestId("current-chord")).toHaveText("D");
+  await page.keyboard.up("d");
+  await page.keyboard.down("Shift");
+  await page.keyboard.down("D");
+  for (const n of ["D4", "F4", "A4"]) await expect(key(n)).toHaveAttribute("aria-pressed", "true");
+  await expect(page.getByTestId("current-chord")).toHaveText("Dm");
+  await page.keyboard.up("D");
+  await page.keyboard.up("Shift");
+  await page.keyboard.down(" ");
+  await page.keyboard.down("d");
+  for (const n of ["D♯4", "G4", "A♯4"]) await expect(key(n)).toHaveAttribute("aria-pressed", "true");
+  await expect(page.getByTestId("current-chord")).toHaveText("D♯");
+  await page.keyboard.up("d");
+  await page.keyboard.up(" ");
+  await expect(key("D♯4")).toHaveAttribute("aria-pressed", "false");
+});
+
+test("piano mode: computer keyboard plays notes and space holds the pedal", async ({ page }) => {
+  await page.goto("/play");
+  await startAudio(page);
+  await page.getByRole("button", { name: "Piano mode" }).click();
   await page.locator("main").click({ position: { x: 5, y: 5 } });
   await page.keyboard.down("a");
   await expect(page.getByRole("button", { name: "C4", exact: true }).first()).toHaveAttribute("aria-pressed", "true");

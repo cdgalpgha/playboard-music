@@ -11,7 +11,7 @@ interface Props {
   high: number;
   /** Notes the player should press now, coloured by hand. */
   expected?: ReadonlyMap<number, Hand>;
-  labels?: "none" | "c" | "qwerty";
+  labels?: "none" | "c" | "qwerty" | "chords";
   qwertyOctave?: number;
   className?: string;
 }
@@ -94,7 +94,15 @@ export function PianoKeyboard({ low, high, expected, labels = "c", qwertyOctave 
     const held = inputBus.isHeld(k.note);
     const hand = expected?.get(k.note);
     const label =
-      labels === "qwerty" ? qwertyByNote.get(k.note) : labels === "c" && k.note % 12 === 0 ? noteName(k.note) : null;
+      labels === "qwerty"
+        ? qwertyByNote.get(k.note)
+        : labels === "chords"
+          ? !k.black && Math.floor(k.note / 12) - 1 === qwertyOctave
+            ? noteName(k.note).replace(/\d+$/, "")
+            : null
+          : labels === "c" && k.note % 12 === 0
+            ? noteName(k.note)
+            : null;
     const base = k.black
       ? "absolute top-0 z-10 h-[62%] rounded-b-md border border-black/60 shadow-[inset_0_-4px_0_rgba(255,255,255,0.08)]"
       : "absolute top-0 h-full rounded-b-lg border border-black/15";

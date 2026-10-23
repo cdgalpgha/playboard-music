@@ -96,13 +96,14 @@ export async function restoreInputSettings(): Promise<void> {
   inputBus.monitor = await getSetting<boolean>("monitor", true);
   const saved = await getSetting<{ range: KeyboardRange; confirmed: boolean } | null>("keyboardRange", null);
   if (saved) inputStore.setState({ range: saved.range, rangeConfirmed: saved.confirmed });
-  const qwerty = await getSetting<{ octave: number; velocity: number } | null>("qwerty", null);
-  if (qwerty) inputStore.setState({ qwertyOctave: qwerty.octave, qwertyVelocity: qwerty.velocity });
+  const qwerty = await getSetting<{ octave: number; velocity: number; mode?: "chords" | "notes" } | null>("qwerty", null);
+  if (qwerty)
+    inputStore.setState({ qwertyOctave: qwerty.octave, qwertyVelocity: qwerty.velocity, qwertyMode: qwerty.mode ?? "chords" });
   inputStore.subscribe((s, prev) => {
     if (s.range !== prev.range || s.rangeConfirmed !== prev.rangeConfirmed)
       void setSetting("keyboardRange", { range: s.range, confirmed: s.rangeConfirmed });
-    if (s.qwertyOctave !== prev.qwertyOctave || s.qwertyVelocity !== prev.qwertyVelocity)
-      void setSetting("qwerty", { octave: s.qwertyOctave, velocity: s.qwertyVelocity });
+    if (s.qwertyOctave !== prev.qwertyOctave || s.qwertyVelocity !== prev.qwertyVelocity || s.qwertyMode !== prev.qwertyMode)
+      void setSetting("qwerty", { octave: s.qwertyOctave, velocity: s.qwertyVelocity, mode: s.qwertyMode });
   });
 }
 
