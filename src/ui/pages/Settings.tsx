@@ -6,6 +6,7 @@ import { TIER_LABELS, type SampleTier } from "@/audio/samples/manifest.ts";
 import { inputBus } from "@/input/input-bus.ts";
 import { useAudio } from "@/state/audio-store.ts";
 import { setSetting } from "@/storage/db.ts";
+import { setYoutubeApiKey, youtubeApiKey } from "@/storage/sync-maps.ts";
 import { PageHeader, Toggle } from "../controls.tsx";
 import { StartAudioButton } from "../StartAudioButton.tsx";
 
@@ -16,6 +17,10 @@ export default function Settings() {
   const [cacheBytes, setCacheBytes] = useState<number | null>(null);
   const [monitor, setMonitor] = useState(inputBus.monitor);
   const opus = supportsOpus();
+  const [apiKey, setApiKey] = useState("");
+  const [keySaved, setKeySaved] = useState(false);
+  const envKey = Boolean(import.meta.env.VITE_YOUTUBE_API_KEY);
+  useEffect(() => void youtubeApiKey().then(setApiKey), []);
 
   useEffect(() => {
     void sampleCacheBytes().then(setCacheBytes);
@@ -67,6 +72,45 @@ export default function Settings() {
           >
             Delete downloaded samples
           </button>
+        </section>
+
+        <section className="card space-y-3" aria-labelledby="yt-title">
+          <h2 id="yt-title" className="text-base font-bold">
+            YouTube search
+          </h2>
+          <p className="text-sm text-ink-soft">
+            Searching YouTube from Playboard needs a YouTube Data API v3 key from the Google Cloud console. Without one,
+            you can still paste video links. Restrict the key to this website's address so nobody else can use it.
+          </p>
+          {envKey ? (
+            <p className="text-sm text-green-dark">This installation provides a key, so search is ready.</p>
+          ) : (
+            <form
+              className="flex gap-2"
+              onSubmit={(e) => {
+                e.preventDefault();
+                void setYoutubeApiKey(apiKey).then(() => setKeySaved(true));
+              }}
+            >
+              <label className="sr-only" htmlFor="yt-key">
+                YouTube Data API key
+              </label>
+              <input
+                id="yt-key"
+                className="input-select font-mono"
+                autoComplete="off"
+                spellCheck={false}
+                value={apiKey}
+                onChange={(e) => {
+                  setApiKey(e.target.value);
+                  setKeySaved(false);
+                }}
+                placeholder="AIza…"
+              />
+              <button className="btn-secondary">{keySaved ? "Saved" : "Save"}</button>
+            </form>
+          )}
+          <p className="text-xs text-muted">The key is kept in this browser only.</p>
         </section>
 
         <section className="card space-y-4" aria-labelledby="monitor-title">

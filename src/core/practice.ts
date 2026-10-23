@@ -39,7 +39,11 @@ export class WaitGate {
   clean = 0;
   private dirty = false;
 
-  constructor(readonly groups: OnsetGroup[]) {}
+  readonly groups: OnsetGroup[];
+
+  constructor(groups: OnsetGroup[]) {
+    this.groups = groups;
+  }
 
   current(): OnsetGroup | null {
     return this.groups[this.index] ?? null;

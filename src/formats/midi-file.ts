@@ -35,10 +35,13 @@ const DRUM_CHANNEL = 9;
 
 class Reader {
   pos = 0;
-  constructor(
-    private readonly view: DataView,
-    private readonly end = view.byteLength,
-  ) {}
+  private readonly view: DataView;
+  private readonly end: number;
+
+  constructor(view: DataView, end = view.byteLength) {
+    this.view = view;
+    this.end = end;
+  }
   get done(): boolean {
     return this.pos >= this.end;
   }

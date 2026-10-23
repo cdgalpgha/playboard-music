@@ -191,17 +191,27 @@ Wall time is `performance.now()` of the moment something is heard or seen.
   `performance.now()`, so a note reaches the line when it is heard. Pausing
   sends `cancelScheduled` to the worklet, which drops queued events without
   cutting notes the player is holding.
-- **Video master**. `VideoClock` polls `player.getCurrentTime()` every 100 ms.
+- **Video master** (`practice/video-transport.ts`, same `TransportLike`
+  interface). τ is chart time; loops seek the video and bump the pass
+  counter; wait-for-me pauses the video at the hold point; tempo uses the
+  nearest rate YouTube offers (0.25–2, pitch kept). Play, pause and seeks made
+  with YouTube's own controls are followed through a discontinuity counter.
+  `VideoClock` polls `player.getCurrentTime()` every 100 ms.
   Between polls it extrapolates `t = t_poll + (perfNow - perf_poll)/1000 * playbackRate`.
   On each poll the error `e = polled - predicted` is corrected: `|e| > 300 ms`
   snaps (seek, buffering), smaller errors slew at 10% of the error per poll so
-  motion stays smooth. `SyncMap` then converts video seconds to chart seconds.
+  motion stays smooth. If the player repeats stale values, a changed value is
+  dated to the midpoint of the two polls around it. `SyncMap` then converts
+  video seconds to chart seconds.
 
 ### 6.3 Sync map
 Per song and per video: a sorted list of anchors `(videoSec, chartSec)` plus
 a manual `offsetMs`. Between anchors the map is piecewise-linear; outside, it
 extends the nearest segment's slope (slope 1 with a single anchor). A beat map
-of the video can be built by tapping along; taps are fitted to chart beats.
+of the video can be built by tapping along: taps are paired with consecutive
+chart beats and fitted with a straight line, which replaces the anchors in
+the tapped span (so a rubato recording can be fitted section by section).
+"First note now" moves the whole map so the first note lines up.
 The inverse map is used for seeking the video to a chart position.
 
 ### 6.4 Input timing

@@ -71,6 +71,7 @@ export function SheetView({
   useEffect(() => {
     let cancelled = false;
     let observer: ResizeObserver | null = null;
+    let resizeTimer: ReturnType<typeof setTimeout> | undefined;
     let width = 0;
     setLoading(true);
     void (async () => {
@@ -103,13 +104,13 @@ export function SheetView({
         setLoading(false);
         width = host.current.clientWidth;
         // Re-layout when the width changes (OSMD's own autoResize would re-render too often).
-        let timer: ReturnType<typeof setTimeout> | undefined;
         observer = new ResizeObserver(() => {
           const w = host.current?.clientWidth ?? 0;
           if (Math.abs(w - width) < 8) return;
           width = w;
-          clearTimeout(timer);
-          timer = setTimeout(() => {
+          clearTimeout(resizeTimer);
+          resizeTimer = setTimeout(() => {
+            if (cancelled) return;
             o.render();
             setBoxes(measureBoxes(o));
           }, 150);
@@ -124,6 +125,7 @@ export function SheetView({
     })();
     return () => {
       cancelled = true;
+      clearTimeout(resizeTimer);
       observer?.disconnect();
       osmd.current?.clear();
       osmd.current = null;

@@ -190,3 +190,48 @@ fixtures.
 
 **D36. Theme colour tokens for the hands are `rh`/`lh`.** Naming them
 `right`/`left` made Tailwind's `text-left` set both alignment and colour.
+
+## YouTube play-along
+
+**D37. The embed uses the standard `www.youtube.com` player with YouTube's
+controls on**, not the privacy-enhanced `youtube-nocookie.com` host, to stay
+as close as possible to "the standard embedded player" and to keep views
+counting normally. Nothing is drawn over the player, and its box is at least
+200 × 200 px (YouTube's minimum) at every screen width.
+
+**D38. No third-party metadata service.** v0.2 used Noembed for titles and
+uploader names. Now titles and channels come from the Data API search result
+or, for pasted links, from the player itself (`getVideoData()`).
+
+**D39. The Data API key is supplied by whoever runs or uses the app**
+(`VITE_YOUTUBE_API_KEY` at build time, or a key typed in Settings and kept in
+IndexedDB). A browser app cannot hide a key, so the Settings text says to
+restrict it to the site's address. Without a key, search is replaced by
+pasting a link.
+
+**D40. "Official" means the channel name matches the artist (also with
+"Official"/"Music"), ends in VEVO, or is an auto-generated "- Topic"
+channel.** The Data API does not say whether a channel belongs to an artist,
+so this is a heuristic and the UI words it as such; pasted links are labelled
+"cannot tell". Every embed states which channel receives the view.
+
+**D41. Search uses `type=video`, `videoEmbeddable=true` and
+`videoSyndicated=true`**, so results can be played outside youtube.com.
+`videos.list` adds durations (1 quota unit). Original mode appends
+"official" to the query; Karaoke mode appends "karaoke"; results are re-ranked
+but YouTube's order is kept within a rank.
+
+**D42. With a video, auto-played hands and clicks default to off and there
+is no count-in.** The recording is the accompaniment and its own count-in.
+
+**D43. The video clock was validated against simulated players, not the real
+one.** In this cloud container YouTube serves the player and metadata but
+refuses playback (`errorCode: "auth"`), so `getCurrentTime()` could not be
+observed live. The clock handles both possible behaviours: a value the API
+already interpolates, and a stale value that changes every few hundred
+milliseconds. Against a stale 250 ms source the smoothed clock is off by
++4.5 ms on average (raw polling: −126 ms).
+
+**D44. Sync maps are stored per song and per video** (`syncMaps` store), as
+anchors plus an offset in milliseconds. Positive offsets make the notes later
+than the video.

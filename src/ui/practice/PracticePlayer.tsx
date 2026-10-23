@@ -3,6 +3,7 @@ import { useStore } from "zustand";
 import { pitchRange, type Chart, type Hand } from "@/core/chart.ts";
 import { visibleRange } from "@/core/keyboard-range.ts";
 import { PracticeSession, type SessionState } from "@/practice/session.ts";
+import type { TransportLike } from "@/core/transport.ts";
 import { noteName } from "@/render/keyboard-geometry.ts";
 import { refreshOffsets, useOffsets } from "@/storage/devices.ts";
 import { useAudio } from "@/state/audio-store.ts";
@@ -62,12 +63,13 @@ export function usePracticeSession(
   chart: Chart,
   meta?: ConstructorParameters<typeof PracticeSession>[1],
   initial?: Parameters<PracticeSession["update"]>[0],
+  transport?: TransportLike,
 ): PracticeSession {
   const session = useMemo(() => {
-    const s = new PracticeSession(chart, meta);
+    const s = new PracticeSession(chart, meta, transport);
     if (initial) s.update(initial);
     return s;
-  }, [chart]);
+  }, [chart, transport]);
   useEffect(() => {
     session.attach();
     return () => session.detach();

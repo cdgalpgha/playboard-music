@@ -4,7 +4,7 @@ import { scheduleClick } from "@/audio/metronome.ts";
 import { firstNoteAtOrAfter, measureAtTime, type Chart, type ChartNote, type Hand } from "@/core/chart.ts";
 import { onsetGroups, WaitGate } from "@/core/practice.ts";
 import { emptyCounts, ScoringEngine, type Judgement, type SessionSummary } from "@/core/scoring.ts";
-import { Transport, type Segment } from "@/core/transport.ts";
+import { Transport, type Segment, type TransportLike } from "@/core/transport.ts";
 import { inputBus, type NoteEvent } from "@/input/input-bus.ts";
 import { offsetStore } from "@/storage/devices.ts";
 import { db } from "@/storage/db.ts";
@@ -50,12 +50,17 @@ export interface SessionState {
   fps: { mean: number; p95FrameMs: number; p95DrawMs: number; dropped: number; frames: number } | null;
 }
 
+const VIDEO_RATES = [0.25, 0.5, 0.75, 1, 1.25, 1.5, 1.75, 2];
+export function nearestVideoRate(rate: number): number {
+  return VIDEO_RATES.reduce((a, b) => (Math.abs(b - rate) < Math.abs(a - rate) ? b : a), 1);
+}
+
 function emptyLive(): LiveStats {
   return { counts: emptyCounts(), wrong: 0, combo: 0, bestCombo: 0, judged: 0 };
 }
 
 export class PracticeSession {
-  readonly transport = new Transport();
+  readonly transport: TransportLike;
   readonly store: StoreApi<SessionState>;
   /** Recent judgements for the renderer's hit flashes. */
   readonly feedback: Feedback[] = [];
@@ -70,11 +75,19 @@ export class PracticeSession {
   private startedAt = 0;
   private unsubscribe: (() => void) | null = null;
   private savedFinal = false;
+  private lastGeneration = 0;
+  private lastTransportPlaying = false;
+  readonly chart: Chart;
+  readonly meta: { kind: "lesson" | "song" | "practice"; skills: string[] };
 
   constructor(
-    readonly chart: Chart,
-    readonly meta: { kind: "lesson" | "song" | "practice"; skills: string[] } = { kind: "practice", skills: [] },
+    chart: Chart,
+    meta: { kind: "lesson" | "song" | "practice"; skills: string[] } = { kind: "practice", skills: [] },
+    transport: TransportLike = new Transport(),
   ) {
+    this.chart = chart;
+    this.meta = meta;
+    this.transport = transport;
     this.store = createStore<SessionState>(() => ({
       status: "ready",
       rate: 1,
@@ -94,9 +107,15 @@ export class PracticeSession {
     }));
   }
 
-  /** Starts listening to input. Pair with `detach()`; safe to repeat (React StrictMode). */
+  /** Starts listening to input and the clock. Pair with `detach()`; safe to repeat (React StrictMode). */
   attach(): void {
     this.unsubscribe ??= inputBus.subscribe((e) => this.onInput(e));
+    this.timer ??= setInterval(() => this.tick(), TICK_MS);
+  }
+
+  /** True when an embedded video drives time. */
+  get videoMode(): boolean {
+    return this.transport.kind === "video";
   }
 
   get state(): SessionState {
@@ -133,21 +152,23 @@ export class PracticeSession {
     this.startedAt = Date.now();
     this.savedFinal = false;
     this.resetScoring(from);
-    // One bar of count-in clicks in timed mode.
+    // One bar of count-in clicks in timed mode. With a video, the video itself counts in.
     this.countInTaus = [];
     let startTau = from;
-    if (!s.wait && !s.listen) {
+    if (!s.wait && !s.listen && !this.videoMode) {
       const m = this.chart.measures[measureAtTime(this.chart, from)];
       const beats = m ? m.beats : 4;
       const beatSec = m ? (m.end - m.start) / beats : 0.5;
       startTau = from - beats * beatSec;
       for (let b = 0; b < beats; b++) this.countInTaus.push({ tau: startTau + b * beatSec, downbeat: b === 0 });
     }
-    this.transport.seek(startTau);
+    if (!this.videoMode || Math.abs(this.transport.position() - startTau) > 0.05) this.transport.seek(startTau);
     this.scheduledTau = startTau;
     this.transport.play();
+    this.lastGeneration = this.transport.generation;
+    this.lastTransportPlaying = true;
     this.store.setState({ status: this.countInTaus.length ? "countin" : "playing", summary: null });
-    this.timer ??= setInterval(() => this.tick(), TICK_MS);
+    this.attach();
     this.tick();
   }
 
@@ -185,7 +206,11 @@ export class PracticeSession {
 
   /** Applies a setting; while playing, scoring restarts from the current position. */
   update(patch: Partial<Pick<SessionState, "rate" | "hands" | "wait" | "autoplayOther" | "listen" | "metronome">>): void {
-    if (patch.rate !== undefined) this.transport.setRate(patch.rate);
+    if (patch.rate !== undefined) {
+      this.transport.setRate(patch.rate);
+      // A video offers fixed rates; show the one actually used.
+      if (this.videoMode) patch = { ...patch, rate: nearestVideoRate(patch.rate) };
+    }
     this.store.setState(patch);
     const st = this.state.status;
     if (st === "playing" || st === "countin") {
@@ -299,7 +324,38 @@ export class PracticeSession {
 
   // ---- scheduling ---------------------------------------------------------
 
+  /** Follows play, pause and seeks made with the video's own controls. */
+  private followVideo(): void {
+    const playing = this.transport.playing;
+    const st = this.state.status;
+    if (playing && !this.lastTransportPlaying && st !== "playing" && st !== "countin") {
+      this.lastTransportPlaying = true;
+      this.play();
+      return;
+    }
+    if (!playing && this.lastTransportPlaying && !this.transport.holding) {
+      this.lastTransportPlaying = false;
+      if (st === "playing") {
+        this.stopScheduled();
+        this.store.setState({ status: "paused" });
+      }
+    }
+    if (playing) this.lastTransportPlaying = true;
+    const gen = this.transport.generation;
+    if (gen !== this.lastGeneration) {
+      this.lastGeneration = gen;
+      if (this.state.status === "playing") {
+        this.stopScheduled();
+        this.scheduledTau = this.transport.tauAt();
+        const { pass } = this.transport.chartOf(this.scheduledTau);
+        if (pass === this.state.pass) this.resetScoring(this.transport.position());
+        this.gate?.seek(this.transport.position());
+      }
+    }
+  }
+
   private tick(): void {
+    if (this.videoMode) this.followVideo();
     const s = this.state;
     if (s.status !== "playing" && s.status !== "countin") return;
     const tau = this.transport.tauAt();
@@ -428,7 +484,8 @@ export class PracticeSession {
   }
 
   private finish(): void {
-    this.transport.pause();
+    // A video keeps playing its outro; only the internal clock stops.
+    if (!this.videoMode) this.transport.pause();
     this.stopScheduled();
     const summary = this.summarize();
     this.store.setState({ status: "finished", summary });

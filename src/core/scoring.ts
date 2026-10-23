@@ -86,10 +86,10 @@ export class ScoringEngine {
   private readonly chartWindow: number;
   private readonly measureLabels: string[];
 
-  constructor(
-    chart: Chart,
-    private readonly opts: ScoringOptions,
-  ) {
+  private readonly opts: ScoringOptions;
+
+  constructor(chart: Chart, opts: ScoringOptions) {
+    this.opts = opts;
     this.windows = opts.windows ?? DEFAULT_WINDOWS;
     this.scale = windowScale(opts.rate);
     this.notes = chart.notes;

@@ -21,7 +21,35 @@ export interface Segment {
   pass: number;
 }
 
-export class Transport {
+/** What the practice session and renderer need from a clock. */
+export interface TransportLike {
+  /** "video" when time comes from an embedded player. */
+  readonly kind: "internal" | "video";
+  readonly rate: number;
+  readonly playing: boolean;
+  readonly loop: LoopRange | null;
+  readonly holding: boolean;
+  readonly holdPoint: number | null;
+  /** Increments when time jumps for a reason the session did not cause (video seeks, buffering). */
+  readonly generation: number;
+  tauAt(perf?: number): number;
+  perfAt(tau: number): number;
+  chartOf(tau: number): { chart: number; pass: number };
+  position(perf?: number): number;
+  tauOfChart(chart: number, pass: number): number;
+  segments(tauFrom: number, tauTo: number): Segment[];
+  play(): void;
+  pause(): void;
+  seek(chart: number): void;
+  setRate(rate: number): void;
+  setLoop(loop: LoopRange | null): void;
+  hold(tau: number): void;
+  release(): void;
+}
+
+export class Transport implements TransportLike {
+  readonly kind = "internal" as const;
+  readonly generation = 0;
   private rateValue = 1;
   private playingValue = false;
   private anchorPerf = 0;
@@ -29,7 +57,11 @@ export class Transport {
   private loopValue: LoopRange | null = null;
   private holdTau: number | null = null;
 
-  constructor(private readonly now: () => number = () => performance.now()) {}
+  private readonly now: () => number;
+
+  constructor(now: () => number = () => performance.now()) {
+    this.now = now;
+  }
 
   get rate(): number {
     return this.rateValue;
