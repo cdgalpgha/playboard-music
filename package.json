@@ -1,1 +1,21 @@
-{"name":"playboard-music","version":"0.1.0","private":true,"type":"module","scripts":{"dev":"vite --host 0.0.0.0","build":"vite build","preview":"vite preview --host 0.0.0.0","test":"playwright test"},"devDependencies":{"@playwright/test":"^1.61.1","vite":"^8.0.3"},"dependencies":{"@fontsource/dm-sans":"^5.3.0","@fontsource/manrope":"^5.3.0"}}
+{
+  "name": "playboard-music",
+  "version": "0.2.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 0.0.0.0",
+    "build": "npm run verify:samples && vite build",
+    "preview": "vite preview --host 0.0.0.0",
+    "test": "playwright test",
+    "verify:samples": "node scripts/verify-samples.js"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.61.1",
+    "vite": "^8.0.3"
+  },
+  "dependencies": {
+    "@fontsource/dm-sans": "^5.3.0",
+    "@fontsource/manrope": "^5.3.0"
+  }
+}
