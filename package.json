@@ -13,6 +13,7 @@
     "test:e2e": "playwright test",
     "perf:sampler": "PERF=1 vitest run",
     "verify:samples": "node scripts/verify-samples.mjs",
+    "build:content": "node scripts/build-content.ts",
     "format": "prettier --write \"src/**/*.{ts,tsx,css}\" \"tests/**/*.ts\""
   },
   "dependencies": {

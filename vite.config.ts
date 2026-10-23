@@ -10,6 +10,8 @@ export default defineConfig({
     alias: { "@": fileURLToPath(new URL("./src", import.meta.url)) },
   },
   worker: { format: "es" },
+  // Pre-bundle lazily imported libraries so the dev server never reloads mid-session.
+  optimizeDeps: { include: ["opensheetmusicdisplay"] },
   build: {
     target: "es2022",
     sourcemap: true,

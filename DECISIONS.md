@@ -128,3 +128,31 @@ At least 8 must remain. Offsets are stored per input-device/output-device pair.
 **D24. Slowing down never changes pitch.** Charts are rendered by the sampler,
 so tempo changes only move note times. For YouTube play-along (milestone 5),
 YouTube's player keeps pitch at reduced speed.
+
+## Lessons and sheet music
+
+**D25. The current-measure highlight is an overlay drawn from OSMD's layout**
+(each measure's bounding box across staves), not OSMD's note cursor. The
+cursor steps by notes and would need to be advanced in lockstep with the
+transport; the overlay only needs the measure index, which the chart keeps as
+`sourceIndex` so repeats highlight the right printed bar. Clicking a measure
+seeks there.
+
+**D26. Lessons are not locked.** The path shows completion and the
+recommended next lesson, but any lesson can be opened. Adults returning to
+the piano skip ahead, and a lock adds frustration without teaching anything.
+
+**D27. Early lessons use wait-for-me and pass on pitch accuracy (85%)**; from
+lesson 4 on, lessons are timed (75%; 70% for the two-hand Minuet). Lessons 6
+and 10 reuse the built-in pieces, with different presets (right hand only with
+the left auto-played; both hands at 70% tempo).
+
+**D28. Lesson melodies are traditional or public domain** (Hot Cross Buns,
+Mary Had a Little Lamb, Lightly Row / Hänschen klein, Ode to Joy, Minuet in
+G); exercises (middle C, five-finger patterns, the C scale, C–F–G chords) and
+all arrangements are written for Playboard. Each lesson carries its own
+license record and the build rejects one without it.
+
+**D29. OSMD is loaded only when a sheet is shown.** It is a 1.4 MB chunk;
+the landing page and free play never fetch it. Vite pre-bundles it in dev so
+the dev server does not reload the page on first use.

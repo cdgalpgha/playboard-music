@@ -6,6 +6,8 @@ import { Layout } from "./Layout.tsx";
 import { Home } from "@/ui/pages/Home.tsx";
 
 const FreePlay = lazy(() => import("@/ui/pages/FreePlay.tsx"));
+const Learn = lazy(() => import("@/ui/pages/Learn.tsx"));
+const LessonPage = lazy(() => import("@/ui/pages/LessonPage.tsx"));
 const Pieces = lazy(() => import("@/ui/pages/Pieces.tsx"));
 const Piece = lazy(() => import("@/ui/pages/Piece.tsx"));
 const Setup = lazy(() => import("@/ui/pages/Setup.tsx"));
@@ -38,6 +40,8 @@ export function App() {
         <Route element={<Layout />}>
           <Route index element={<Home />} />
           <Route path="play" element={page(FreePlay)} />
+          <Route path="learn" element={page(Learn)} />
+          <Route path="learn/:id" element={page(LessonPage)} />
           <Route path="pieces" element={page(Pieces)} />
           <Route path="pieces/:id" element={page(Piece)} />
           <Route path="setup" element={page(Setup)} />

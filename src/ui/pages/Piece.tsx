@@ -4,12 +4,24 @@ import { findItem, type CatalogItem } from "@/content/catalog.ts";
 import type { Chart } from "@/core/chart.ts";
 import { PageHeader } from "../controls.tsx";
 import { PracticePlayer, usePracticeSession } from "../practice/PracticePlayer.tsx";
+import { SessionSheet } from "../sheet/SessionSheet.tsx";
 
-function Loaded({ item, chart }: { item: CatalogItem; chart: Chart }) {
+function Loaded({ item, chart, xml }: { item: CatalogItem; chart: Chart; xml: string | null }) {
   const session = usePracticeSession(chart, { kind: "song", skills: item.skills });
+  const [showSheet, setShowSheet] = useState(true);
   return (
     <div className="px-4 lg:px-8">
-      <PracticePlayer chart={chart} session={session} />
+      {xml && (
+        <label className="mb-2 flex items-center gap-2 text-xs text-ink-soft">
+          <input type="checkbox" className="accent-green" checked={showSheet} onChange={(e) => setShowSheet(e.target.checked)} />
+          Show sheet music
+        </label>
+      )}
+      <PracticePlayer
+        chart={chart}
+        session={session}
+        above={xml && showSheet ? <SessionSheet session={session} xml={xml} /> : undefined}
+      />
       <p className="mt-6 text-xs text-muted">{item.license.attribution}</p>
     </div>
   );
@@ -17,7 +29,7 @@ function Loaded({ item, chart }: { item: CatalogItem; chart: Chart }) {
 
 export default function Piece() {
   const { id = "" } = useParams();
-  const [loaded, setLoaded] = useState<{ item: CatalogItem; chart: Chart } | null>(null);
+  const [loaded, setLoaded] = useState<{ item: CatalogItem; chart: Chart; xml: string | null } | null>(null);
   const [error, setError] = useState("");
   useEffect(() => {
     let cancelled = false;
@@ -28,7 +40,8 @@ export default function Piece() {
         const found = await findItem(id);
         if (!found) throw new Error("This piece is not in your library.");
         const chart = await found.provider.loadChart(found.item);
-        if (!cancelled) setLoaded({ item: found.item, chart });
+        const xml = (await found.provider.loadMusicXml?.(found.item)) ?? null;
+        if (!cancelled) setLoaded({ item: found.item, chart, xml });
       } catch (e) {
         if (!cancelled) setError(e instanceof Error ? e.message : String(e));
       }
@@ -56,7 +69,7 @@ export default function Piece() {
           </>
         )}
       </PageHeader>
-      {loaded && <Loaded key={loaded.item.id} item={loaded.item} chart={loaded.chart} />}
+      {loaded && <Loaded key={loaded.item.id} item={loaded.item} chart={loaded.chart} xml={loaded.xml} />}
     </div>
   );
 }

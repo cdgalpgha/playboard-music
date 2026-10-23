@@ -11,6 +11,7 @@ import { DOMParser } from "@xmldom/xmldom";
 import { writeMusicXml } from "../src/formats/musicxml-writer.ts";
 import { parseMusicXml } from "../src/formats/musicxml.ts";
 import { PIECES } from "../content/pieces.ts";
+import { LESSONS } from "../content/lessons.ts";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const outDir = join(root, "public", "content", "pieces");
@@ -45,3 +46,33 @@ const catalogPath = join(root, "src", "content", "builtin", "pieces.json");
 mkdirSync(dirname(catalogPath), { recursive: true });
 writeFileSync(catalogPath, JSON.stringify(catalog, null, 2) + "\n");
 console.log(`Wrote ${catalog.length} pieces to ${catalogPath}`);
+
+const lessonDir = join(root, "public", "content", "lessons");
+mkdirSync(lessonDir, { recursive: true });
+const lessons = LESSONS.map((lesson, order) => {
+  if (!lesson.license?.attribution) throw new Error(`${lesson.id}: every lesson needs a license record`);
+  let chartUrl: string;
+  let measures: number;
+  let durationSec: number;
+  if (lesson.pieceRef) {
+    const piece = catalog.find((p) => p.id === lesson.pieceRef);
+    if (!piece) throw new Error(`${lesson.id}: unknown piece ${lesson.pieceRef}`);
+    ({ chartUrl, measures, durationSec } = piece);
+  } else if (lesson.score) {
+    const xml = writeMusicXml(lesson.score);
+    const chart = parseMusicXml(xml, lesson.id, lesson.license, DOMParser as never);
+    const hands = new Set(chart.notes.map((n) => n.hand));
+    for (const h of lesson.practice.hands)
+      if (!hands.has(h)) throw new Error(`${lesson.id}: practises hand ${h} but the score has no ${h} notes`);
+    writeFileSync(join(lessonDir, `${lesson.id}.musicxml`), xml);
+    chartUrl = `/content/lessons/${lesson.id}.musicxml`;
+    measures = chart.measures.length;
+    durationSec = Math.round(chart.duration);
+    console.log(`${lesson.id}: ${measures} measures, ${chart.notes.length} notes`);
+  } else throw new Error(`${lesson.id}: needs a score or a pieceRef`);
+  const { score: _score, pieceRef: _ref, ...meta } = lesson;
+  return { ...meta, order: order + 1, chartUrl, measures, durationSec };
+});
+const lessonsPath = join(root, "src", "content", "builtin", "lessons.json");
+writeFileSync(lessonsPath, JSON.stringify(lessons, null, 2) + "\n");
+console.log(`Wrote ${lessons.length} lessons to ${lessonsPath}`);

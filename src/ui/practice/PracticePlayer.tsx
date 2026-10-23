@@ -58,8 +58,16 @@ function ToggleButton({ pressed, onClick, children }: { pressed: boolean; onClic
   );
 }
 
-export function usePracticeSession(chart: Chart, meta?: ConstructorParameters<typeof PracticeSession>[1]): PracticeSession {
-  const session = useMemo(() => new PracticeSession(chart, meta), [chart]);
+export function usePracticeSession(
+  chart: Chart,
+  meta?: ConstructorParameters<typeof PracticeSession>[1],
+  initial?: Parameters<PracticeSession["update"]>[0],
+): PracticeSession {
+  const session = useMemo(() => {
+    const s = new PracticeSession(chart, meta);
+    if (initial) s.update(initial);
+    return s;
+  }, [chart]);
   useEffect(() => {
     session.attach();
     return () => session.detach();

@@ -197,11 +197,13 @@ export class FallingNotesRenderer {
         const k = this.keyByNote.get(n.pitch);
         if (!k) continue;
         const isActive = active.has(n.hand);
+        // In Listen mode every note is the demonstration, so none is drawn dimmed.
+        const visible = isActive || state.listen;
         if (isActive && start <= tau + lead && end > tau) expected.set(n.pitch, n.hand);
         const result = seg.pass === currentPass ? session.resultFor(n.id) : undefined;
         const isWaiting = waiting !== null && Math.abs(waiting.time - n.start) < 0.031 && isActive && seg.pass === currentPass;
         if (isWaiting) expected.set(n.pitch, n.hand);
-        this.drawNote(n, k, top, bottom, isActive, result, isWaiting, perf);
+        this.drawNote(n, k, top, bottom, visible, result, isWaiting, perf);
       }
     }
     if (this.onExpected) {
