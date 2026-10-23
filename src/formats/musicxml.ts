@@ -6,7 +6,7 @@
  * tempo from <sound tempo> or <metronome>, repeats with volta endings.
  * Not supported: D.C./D.S./coda jumps (played straight through), timewise files.
  */
-import { buildChart, type Chart, type Hand, type LicenseInfo, type RawMeasure, type RawNote } from "../core/chart.ts";
+import { buildChart, type Chart, type Hand, type LicenseInfo, type RawMeasure, type RawNote, type RawScore } from "../core/chart.ts";
 import type { TempoPoint } from "../core/tempo-map.ts";
 import { DYNAMIC_VELOCITY } from "./musicxml-writer.ts";
 
@@ -273,6 +273,10 @@ export function readMusicXmlMeta(doc: Document): MusicXmlMeta {
 }
 
 export function parseMusicXmlDocument(doc: Document, id: string, license: LicenseInfo): Chart {
+  return buildChart({ ...parseMusicXmlRaw(doc), id, license });
+}
+
+export function parseMusicXmlRaw(doc: Document): RawScore {
   const root = doc.documentElement;
   if (!root || root.tagName !== "score-partwise")
     throw new Error(
@@ -345,16 +349,21 @@ export function parseMusicXmlDocument(doc: Document, id: string, license: Licens
   }
 
   const meta = readMusicXmlMeta(doc);
-  return buildChart({
-    id,
+  return {
     title: meta.title,
     composer: meta.composer,
     notes: notes.filter((n) => n.durationBeats > 0),
     measures: rawMeasures,
     tempo: tempo.length ? tempo : [{ beat: 0, bpm: 120 }],
     keyFifths: keyOut.fifths ?? 0,
-    license,
-  });
+  };
+}
+
+export function parseXml(xml: string, Parser: DOMParserCtor = globalThis.DOMParser as unknown as DOMParserCtor): Document {
+  const doc = new Parser().parseFromString(xml, "application/xml");
+  if (!doc?.documentElement || doc.getElementsByTagName("parsererror").length)
+    throw new Error("The MusicXML file is not well-formed XML.");
+  return doc;
 }
 
 export function parseMusicXml(
@@ -363,7 +372,5 @@ export function parseMusicXml(
   license: LicenseInfo,
   Parser: DOMParserCtor = globalThis.DOMParser as unknown as DOMParserCtor,
 ): Chart {
-  const doc = new Parser().parseFromString(xml, "application/xml");
-  if (doc.getElementsByTagName("parsererror").length) throw new Error("The MusicXML file is not well-formed XML.");
-  return parseMusicXmlDocument(doc, id, license);
+  return parseMusicXmlDocument(parseXml(xml, Parser), id, license);
 }

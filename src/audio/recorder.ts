@@ -1,6 +1,7 @@
 import { inputBus, type NoteEvent } from "@/input/input-bus.ts";
 import { engine } from "./engine.ts";
 import { wavFromChunks } from "./wav.ts";
+import { writeMidiFile, type WriterEvent } from "@/formats/midi-writer.ts";
 
 export type TakeEvent =
   | { t: number; type: "on"; note: number; velocity: number }
@@ -140,6 +141,21 @@ export class Recorder {
 
   static wav(take: Take): Blob {
     return wavFromChunks(take.left, take.right, take.sampleRate);
+  }
+
+  /** The take as a Standard MIDI File at 120 BPM (960 ticks per second). */
+  static midi(take: Take): Blob {
+    const tick = (t: number) => Math.round(t * 960);
+    const events: WriterEvent[] = [
+      { tick: 0, type: "name", text: "Playboard take" },
+      { tick: 0, type: "tempo", bpm: 120 },
+    ];
+    for (const e of take.events) {
+      if (e.type === "on") events.push({ tick: tick(e.t), type: "on", pitch: e.note, velocity: e.velocity });
+      else if (e.type === "off") events.push({ tick: tick(e.t), type: "off", pitch: e.note });
+      else events.push({ tick: tick(e.t), type: "cc", controller: 64, value: e.value });
+    }
+    return new Blob([writeMidiFile([events], 480) as BlobPart], { type: "audio/midi" });
   }
 }
 

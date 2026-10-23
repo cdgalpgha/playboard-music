@@ -99,8 +99,8 @@ export function PianoKeyboard({ low, high, expected, labels = "c", qwertyOctave 
       ? "absolute top-0 z-10 h-[62%] rounded-b-md border border-black/60 shadow-[inset_0_-4px_0_rgba(255,255,255,0.08)]"
       : "absolute top-0 h-full rounded-b-lg border border-black/15";
     let fill = k.black ? "bg-[#1a1f1c]" : "bg-[#fbfbf8]";
-    if (hand && !held) fill = hand === "R" ? (k.black ? "bg-right-deep" : "bg-right/55") : k.black ? "bg-left-deep" : "bg-left/55";
-    if (held) fill = hand === "L" ? "bg-left" : hand === "R" ? "bg-right" : k.black ? "bg-[#5d8c74]" : "bg-sage";
+    if (hand && !held) fill = hand === "R" ? (k.black ? "bg-rh-deep" : "bg-rh/55") : k.black ? "bg-lh-deep" : "bg-lh/55";
+    if (held) fill = hand === "L" ? "bg-lh" : hand === "R" ? "bg-rh" : k.black ? "bg-[#5d8c74]" : "bg-sage";
     return (
       <button
         key={k.note}

@@ -156,3 +156,37 @@ license record and the build rejects one without it.
 **D29. OSMD is loaded only when a sheet is shown.** It is a 1.4 MB chunk;
 the landing page and free play never fetch it. Vite pre-bundles it in dev so
 the dev server does not reload the page on first use.
+
+## Import
+
+**D30. Files are recognised by their bytes, not their extension**: `MThd` is
+MIDI, a zip (`PK`) is compressed MusicXML, otherwise the text must contain
+`<score-partwise>`. Misnamed files still work and wrong files get a clear
+message. RIFF-wrapped MIDI (.rmi) and timewise MusicXML are refused with
+instructions.
+
+**D31. Imports keep the original file plus the edits**, not a converted
+chart. Edits (transpose, tempo, MIDI track roles) are re-applied on load, so
+they can be changed later without re-importing and without loss. `.mxl`
+archives are stored unzipped.
+
+**D32. Default hands for MIDI**: with two or more note tracks, the one with
+the lowest average pitch is the left hand and the rest are the right hand. A
+single track is split at middle C. Drum-channel notes (channel 10) are left
+out. Players can reassign or leave out any track.
+
+**D33. Transposing moves notes that fall off the 88 keys back by an octave**
+and updates the key signature along the circle of fifths. Imported MusicXML
+is transposed in the sheet view too, with OSMD's transpose plugin.
+
+**D34. Imported files are private.** They live in IndexedDB on this device,
+are labelled "Imported by you … stored only on this device", and the import
+page asks the player to use only music they have the right to use. The cloud
+sync planned for milestone 7 does not upload them unless the player opts in.
+
+**D35. Free-play takes can also be exported as MIDI** (120 BPM, 960 ticks
+per second, notes, velocities and CC64), reusing the writer built for test
+fixtures.
+
+**D36. Theme colour tokens for the hands are `rh`/`lh`.** Naming them
+`right`/`left` made Tailwind's `text-left` set both alignment and colour.

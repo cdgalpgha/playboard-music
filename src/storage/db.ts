@@ -28,8 +28,8 @@ export interface UserSongRecord {
   fileName: string;
   format: "midi" | "musicxml";
   data: ArrayBuffer;
-  /** Transpose in semitones and tempo factor applied on load. */
-  edits: { transpose: number; tempo: number; leftHandTracks?: number[] };
+  /** Transpose in semitones and tempo factor applied on load; MIDI track roles (R, L or skip). */
+  edits: { transpose: number; tempo: number; roles?: ("R" | "L" | "skip")[] };
   createdAt: number;
   updatedAt: number;
 }

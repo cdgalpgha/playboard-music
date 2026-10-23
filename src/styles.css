@@ -17,10 +17,10 @@
   --color-stage: #141c18;
   --color-stage-2: #1d2722;
   --color-stage-line: #2c3832;
-  --color-right: #6fc3a0;
-  --color-right-deep: #3f9c78;
-  --color-left: #f0b45c;
-  --color-left-deep: #c98a2e;
+  --color-rh: #6fc3a0;
+  --color-rh-deep: #3f9c78;
+  --color-lh: #f0b45c;
+  --color-lh-deep: #c98a2e;
   --color-warn: #b5651d;
   --color-warn-soft: #fbefe0;
   --color-bad: #b23b3b;

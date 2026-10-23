@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router";
 import { findItem, type CatalogItem } from "@/content/catalog.ts";
+import "@/content/user-library.ts";
 import type { Chart } from "@/core/chart.ts";
 import { PageHeader } from "../controls.tsx";
 import { PracticePlayer, usePracticeSession } from "../practice/PracticePlayer.tsx";
@@ -20,7 +21,7 @@ function Loaded({ item, chart, xml }: { item: CatalogItem; chart: Chart; xml: st
       <PracticePlayer
         chart={chart}
         session={session}
-        above={xml && showSheet ? <SessionSheet session={session} xml={xml} /> : undefined}
+        above={xml && showSheet ? <SessionSheet session={session} xml={xml} transpose={item.sheetTranspose ?? 0} /> : undefined}
       />
       <p className="mt-6 text-xs text-muted">{item.license.attribution}</p>
     </div>
@@ -58,6 +59,15 @@ export default function Piece() {
           <>
             {loaded.item.composer}
             {loaded.item.arranger ? ` · arranged by ${loaded.item.arranger}` : ""}
+            {loaded.item.kind === "user" && (
+              <>
+                {" "}
+                ·{" "}
+                <Link to={`/import?edit=${loaded.item.id}`} className="text-green underline">
+                  Edit tempo, key and hands
+                </Link>
+              </>
+            )}
           </>
         )}
         {error && (

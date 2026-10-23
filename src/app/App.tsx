@@ -10,6 +10,7 @@ const Learn = lazy(() => import("@/ui/pages/Learn.tsx"));
 const LessonPage = lazy(() => import("@/ui/pages/LessonPage.tsx"));
 const Pieces = lazy(() => import("@/ui/pages/Pieces.tsx"));
 const Piece = lazy(() => import("@/ui/pages/Piece.tsx"));
+const Import = lazy(() => import("@/ui/pages/Import.tsx"));
 const Setup = lazy(() => import("@/ui/pages/Setup.tsx"));
 const Settings = lazy(() => import("@/ui/pages/Settings.tsx"));
 const About = lazy(() => import("@/ui/pages/About.tsx"));
@@ -44,6 +45,7 @@ export function App() {
           <Route path="learn/:id" element={page(LessonPage)} />
           <Route path="pieces" element={page(Pieces)} />
           <Route path="pieces/:id" element={page(Piece)} />
+          <Route path="import" element={page(Import)} />
           <Route path="setup" element={page(Setup)} />
           <Route path="settings" element={page(Settings)} />
           <Route path="about" element={page(About)} />

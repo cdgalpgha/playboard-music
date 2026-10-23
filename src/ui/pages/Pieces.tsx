@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router";
 import { builtinProvider, type CatalogItem } from "@/content/catalog.ts";
+import { userProvider } from "@/content/user-library.ts";
 import { PageHeader } from "../controls.tsx";
 import { Icon } from "../Icon.tsx";
 
@@ -29,9 +30,11 @@ export function PieceCard({ item, to }: { item: CatalogItem; to: string }) {
 
 export default function Pieces() {
   const [items, setItems] = useState<CatalogItem[] | null>(null);
+  const [mine, setMine] = useState<CatalogItem[]>([]);
   const [error, setError] = useState("");
   useEffect(() => {
     builtinProvider.list().then(setItems, (e: Error) => setError(e.message));
+    void userProvider.list().then(setMine);
   }, []);
   return (
     <div className="pb-12">
@@ -43,6 +46,33 @@ export default function Pieces() {
         {error && <p className="text-bad">{error}</p>}
         {items?.map((item) => <PieceCard key={item.id} item={item} to={`/pieces/${item.id}`} />)}
       </div>
+      <section className="mt-8 px-4 lg:px-8" aria-labelledby="mine-title">
+        <h2 id="mine-title" className="eyebrow mb-2">
+          My library · private to this device
+        </h2>
+        {mine.length ? (
+          <ul className="grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
+            {mine.map((m) => (
+              <li key={m.id}>
+                <Link to={`/pieces/${m.id}`} className="card flex items-center justify-between gap-3 py-3 hover:shadow-md">
+                  <span className="min-w-0">
+                    <span className="block truncate font-semibold text-green-dark">{m.title}</span>
+                    <span className="block truncate text-xs text-muted">{m.description}</span>
+                  </span>
+                  <Icon name="arrow" size={16} className="text-green" />
+                </Link>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="text-sm text-muted">
+            <Link to="/import" className="text-green underline">
+              Import a MIDI or MusicXML file
+            </Link>{" "}
+            to practise your own music.
+          </p>
+        )}
+      </section>
     </div>
   );
 }

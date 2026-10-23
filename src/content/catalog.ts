@@ -15,6 +15,8 @@ export interface CatalogItem {
   chartUrl: string;
   measures: number;
   durationSec: number;
+  /** Semitones to transpose the sheet view by (imported MusicXML with a key edit). */
+  sheetTranspose?: number;
 }
 
 /**

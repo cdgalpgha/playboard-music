@@ -76,6 +76,16 @@ export interface RawMeasure {
   sourceIndex?: number;
 }
 
+/** A score in beats, before tempo edits and transposition are applied. */
+export interface RawScore {
+  title: string;
+  composer: string;
+  notes: RawNote[];
+  measures: RawMeasure[];
+  tempo: TempoPoint[];
+  keyFifths: number;
+}
+
 /** Builds a chart from beat-based notes and measures. */
 export function buildChart(input: {
   id: string;

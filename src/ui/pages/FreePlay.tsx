@@ -34,7 +34,7 @@ function HeldNotes() {
       )}
       <span
         className={`ml-auto rounded-md px-2 py-0.5 text-xs font-semibold ${
-          inputBus.pedalDown ? "bg-right text-stage" : "bg-stage-2 text-white/50"
+          inputBus.pedalDown ? "bg-rh text-stage" : "bg-stage-2 text-white/50"
         }`}
       >
         Pedal {inputBus.pedalDown ? "down" : "up"}
@@ -51,7 +51,7 @@ function OutputMeter() {
     <div className="flex items-center gap-2" aria-label={`Output level ${db > -90 ? db.toFixed(0) : "-∞"} dB`}>
       <span className="h-2 w-28 overflow-hidden rounded-full bg-line">
         <span
-          className={`block h-full ${db > -1 ? "bg-bad" : db > -6 ? "bg-left" : "bg-green"}`}
+          className={`block h-full ${db > -1 ? "bg-bad" : db > -6 ? "bg-lh" : "bg-green"}`}
           style={{ width: `${pct}%` }}
         />
       </span>
@@ -103,7 +103,7 @@ function MetronomeControl() {
       </button>
       <div className="flex gap-1.5 pb-3" aria-hidden="true">
         {[0, 1, 2, 3].map((i) => (
-          <span key={i} className={`h-2.5 w-2.5 rounded-full ${beat === i ? (i === 0 ? "bg-left" : "bg-green") : "bg-line"}`} />
+          <span key={i} className={`h-2.5 w-2.5 rounded-full ${beat === i ? (i === 0 ? "bg-lh" : "bg-green") : "bg-line"}`} />
         ))}
       </div>
     </div>
@@ -133,12 +133,12 @@ function RecorderControl() {
     setTake(result);
   };
 
-  const download = () => {
+  const download = (kind: "wav" | "mid") => {
     if (!take) return;
-    const url = URL.createObjectURL(Recorder.wav(take));
+    const url = URL.createObjectURL(kind === "wav" ? Recorder.wav(take) : Recorder.midi(take));
     const a = document.createElement("a");
     a.href = url;
-    a.download = `playboard-take-${new Date().toISOString().slice(0, 19).replace(/[:T]/g, "-")}.wav`;
+    a.download = `playboard-take-${new Date().toISOString().slice(0, 19).replace(/[:T]/g, "-")}.${kind}`;
     a.click();
     setTimeout(() => URL.revokeObjectURL(url), 2000);
   };
@@ -186,8 +186,11 @@ function RecorderControl() {
           >
             <Icon name={replaying ? "stop" : "replay"} size={16} /> {replaying ? "Stop replay" : "Replay"}
           </button>
-          <button type="button" className="btn-secondary" onClick={download} disabled={!take.left.length}>
+          <button type="button" className="btn-secondary" onClick={() => download("wav")} disabled={!take.left.length}>
             <Icon name="download" size={16} /> Export WAV
+          </button>
+          <button type="button" className="btn-secondary" onClick={() => download("mid")} disabled={!notes}>
+            <Icon name="download" size={16} /> Export MIDI
           </button>
         </>
       )}
@@ -317,7 +320,7 @@ export default function FreePlay() {
             <RecorderControl />
             <p className="text-xs text-muted">
               Takes stay in this tab until you leave the page. Export WAV saves the piano with room sound, without the
-              metronome. Up to 10 minutes per take.
+              metronome; Export MIDI saves the notes, velocities and pedal. Up to 10 minutes per take.
             </p>
           </section>
         </div>

@@ -33,7 +33,7 @@ src/
     video-clock.ts         interpolated YouTube clock with drift correction
     calibration.ts         tap analysis -> audio/input offsets
     practice.ts            onset groups and the wait-for-me gate
-    transforms.ts          transpose, tempo scaling of charts
+    transforms.ts          transpose (key signature follows), tempo scaling of raw scores
     keyboard-range.ts      key-count detection (25..88)
     midi-message.ts        raw MIDI bytes -> typed messages
   audio/
@@ -53,13 +53,17 @@ src/
     computer-keyboard.ts   QWERTY mapping
     mic/                   microphone capture + Basic Pitch worker
   formats/
-    midi-file.ts           Standard MIDI File parser -> Chart
+    midi-file.ts           Standard MIDI File parser, track roles -> raw score
+    midi-writer.ts         SMF writer (test fixtures, MIDI export of takes)
     musicxml.ts            MusicXML parser -> Chart (repeats expanded, source measure kept)
     musicxml-writer.ts     compact notation -> MusicXML, for authoring built-in content
   practice/
     session.ts             PracticeSession: transport + look-ahead scheduler + scoring + input
+  import/
+    importer.ts            file → MIDI / MusicXML / .mxl detection by content, edits, chart
   content/
     catalog.ts             CatalogProvider interface + registry (refuses unlicensed items)
+    lessons.ts             the Learn path (generated JSON + MusicXML)
     builtin/*.json         generated catalog metadata
     user-library.ts        imported files, private, IndexedDB only
   video/

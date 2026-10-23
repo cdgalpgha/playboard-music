@@ -7,6 +7,7 @@ const NAV: { to: string; label: string; icon: IconName }[] = [
   { to: "/learn", label: "Learn", icon: "learn" },
   { to: "/play", label: "Free play", icon: "piano" },
   { to: "/pieces", label: "Pieces", icon: "songs" },
+  { to: "/import", label: "Import", icon: "upload" },
   { to: "/setup", label: "Device setup", icon: "midi" },
   { to: "/settings", label: "Settings", icon: "settings" },
   { to: "/about", label: "About", icon: "info" },

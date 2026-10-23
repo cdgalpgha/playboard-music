@@ -50,11 +50,14 @@ export function SheetView({
   xml,
   current,
   onSelect,
+  transpose = 0,
   className = "",
 }: {
   xml: string;
   current: number;
   onSelect?: (sourceIndex: number) => void;
+  /** Semitones; uses OSMD's transpose plugin so the notation matches transposed playback. */
+  transpose?: number;
   className?: string;
 }) {
   const scroller = useRef<HTMLDivElement>(null);
@@ -72,7 +75,7 @@ export function SheetView({
     setLoading(true);
     void (async () => {
       try {
-        const { OpenSheetMusicDisplay } = await import("opensheetmusicdisplay");
+        const { OpenSheetMusicDisplay, TransposeCalculator } = await import("opensheetmusicdisplay");
         if (cancelled || !host.current) return;
         host.current.innerHTML = "";
         const o = new OpenSheetMusicDisplay(host.current, {
@@ -89,6 +92,11 @@ export function SheetView({
         });
         await o.load(xml);
         if (cancelled) return;
+        if (transpose) {
+          o.TransposeCalculator = new TransposeCalculator();
+          o.Sheet.Transpose = transpose;
+          o.updateGraphic();
+        }
         o.render();
         osmd.current = o;
         setBoxes(measureBoxes(o));
@@ -120,7 +128,7 @@ export function SheetView({
       osmd.current?.clear();
       osmd.current = null;
     };
-  }, [xml]);
+  }, [xml, transpose]);
 
   const box = boxes[current];
   useEffect(() => {
