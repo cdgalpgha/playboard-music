@@ -1,0 +1,45 @@
+[
+  {
+    "id": "ode-to-joy",
+    "kind": "piece",
+    "title": "Ode to Joy",
+    "composer": "Ludwig van Beethoven",
+    "arranger": "Playboard",
+    "level": 1,
+    "skills": [
+      "c-position",
+      "hands-together",
+      "dotted-rhythm"
+    ],
+    "description": "The theme from Beethoven's Ninth Symphony in C position, with a simple left hand.",
+    "license": {
+      "kind": "public-domain",
+      "attribution": "Ludwig van Beethoven, Symphony No. 9 (1824), public domain. Arrangement written for Playboard."
+    },
+    "chartUrl": "/content/pieces/ode-to-joy.musicxml",
+    "measures": 16,
+    "durationSec": 38
+  },
+  {
+    "id": "minuet-in-g",
+    "kind": "piece",
+    "title": "Minuet in G",
+    "composer": "Christian Petzold (attr. J. S. Bach)",
+    "arranger": "Playboard",
+    "level": 2,
+    "skills": [
+      "g-position",
+      "three-four",
+      "eighth-notes",
+      "hands-together"
+    ],
+    "description": "The first half of the Minuet in G from the Anna Magdalena Bach Notebook, with a walking bass of dotted halves.",
+    "license": {
+      "kind": "public-domain",
+      "attribution": "Christian Petzold, Minuet in G major, BWV Anh. 114 (c. 1725), public domain. Arrangement written for Playboard."
+    },
+    "chartUrl": "/content/pieces/minuet-in-g.musicxml",
+    "measures": 16,
+    "durationSec": 28
+  }
+]
