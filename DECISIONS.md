@@ -285,3 +285,25 @@ A–G plays a major triad, Shift+letter minor, Space+letter raises the root a
 semitone (`src/core/chords.ts`). Piano mode keeps the chromatic A–' layout with
 Space as sustain. Lessons and pieces always use single notes, because chord
 keys would score as wrong notes there.
+
+## Beginner-first redesign
+
+**D54. The app is organised around a beginner's first session, not around
+features.** "Start here" is the landing page: four steps (turn on sound, play
+a chord, take lesson 1, play along with a song), each ticked off from real
+state (audio running, a note played, lesson progress, a video opened). The
+menu uses the names from Playboard v0.2: Play studio, Learn to play, Chord
+book, Song library, Play along, My progress. Technical controls (pedal noise,
+latency, sample tiers) are folded under "For advanced players".
+
+**D55. YouTube play-along works with a pasted link and no API key.** The
+title and channel come from the IFrame player itself (`getVideoData`), so the
+uploader is always credited without a Data API call. Search appears only when
+a key is set. Playback stays in YouTube's visible official player; Playboard
+only calls play, pause, seek, speed and volume on it. A–B loops are done by
+seeking when the player passes B.
+
+**D56. The practice room and chord book from v0.2 are back.** Practice room
+scoring accepts the chord from any input (MIDI, computer keys, on-screen keys)
+in any octave or inversion, within ±220 ms of the bar line as heard (the same
+window v0.2 used), measured on the audio clock.

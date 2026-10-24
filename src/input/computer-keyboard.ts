@@ -120,10 +120,17 @@ function onChordKey(e: KeyboardEvent): void {
   if (!letter) return;
   e.preventDefault();
   if (e.repeat || held.has(e.code)) return;
-  const chord = chordFor(letter, { minor: e.shiftKey, sharp: spaceHeld, octave: state.qwertyOctave });
+  const chord = chordFor(letter, {
+    minor: e.shiftKey,
+    sharp: spaceHeld,
+    octave: state.qwertyOctave,
+    voicing: state.chordVoicing,
+    transpose: state.chordTranspose,
+  });
   if (!chord) return;
   press(e.code, chord.notes, state.qwertyVelocity, e.timeStamp);
   inputStore.setState({ lastChord: chord.name });
+
 }
 
 function onKeyUp(e: KeyboardEvent): void {

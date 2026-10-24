@@ -257,8 +257,9 @@ function CalibrationStep() {
 export default function Setup() {
   return (
     <div className="pb-12">
-      <PageHeader eyebrow="Device setup" title="Set up your piano">
-        Five quick checks so sound, input and timing are right before you practise.
+      <PageHeader eyebrow="Connect a keyboard" title="Set up your piano">
+        Only needed if you have a piano keyboard to plug in. Five quick checks so the sound and timing are right. You
+        can skip this and use your computer keys.
       </PageHeader>
       <div className="grid gap-4 px-4 lg:px-8 xl:grid-cols-2">
         <AudioStep />

@@ -14,7 +14,7 @@ export default function Learn() {
 
   return (
     <div className="pb-12">
-      <PageHeader eyebrow="Learn" title="Your learning path">
+      <PageHeader eyebrow="Learn to play" title="Your learning path">
         Ten lessons from your first note to a piece with both hands: note reading, rhythm, finger numbers, a scale and
         chords. {done ? `${done} of ${LESSONS.length} complete.` : "Start with lesson 1, or jump in wherever you like."}
       </PageHeader>

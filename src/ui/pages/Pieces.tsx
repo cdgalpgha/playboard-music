@@ -38,10 +38,18 @@ export default function Pieces() {
   }, []);
   return (
     <div className="pb-12">
-      <PageHeader eyebrow="Pieces" title="Practise a piece">
-        Public-domain music in arrangements written for Playboard. Slow it down, loop the hard bars, practise hands
-        separately, or let the music wait for you.
+      <PageHeader eyebrow="Song library" title="Songs to learn">
+        Pick a song and the notes fall towards the keys you need to press. Slow it down, repeat the hard part, or turn
+        on "Wait for me" so the music waits until you find the note.
       </PageHeader>
+      <div className="flex flex-wrap gap-2 px-4 pb-4 lg:px-8">
+        <Link to="/play-along" className="btn-secondary">
+          <Icon name="youtube" /> Play along with a YouTube song
+        </Link>
+        <Link to="/import" className="btn-ghost">
+          <Icon name="upload" /> Add your own song file
+        </Link>
+      </div>
       <div className="grid gap-4 px-4 sm:grid-cols-2 lg:px-8 xl:grid-cols-3">
         {error && <p className="text-bad">{error}</p>}
         {items?.map((item) => <PieceCard key={item.id} item={item} to={`/pieces/${item.id}`} />)}

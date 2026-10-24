@@ -35,7 +35,7 @@ export default function Progress() {
 
   return (
     <div className="pb-12">
-      <PageHeader eyebrow="Progress" title="Your practice">
+      <PageHeader eyebrow="My progress" title="Look how far you've come">
         Everything here is stored on this device. A session counts when you finish a piece, lesson or loop pass.
       </PageHeader>
       <div className="space-y-4 px-4 lg:px-8">

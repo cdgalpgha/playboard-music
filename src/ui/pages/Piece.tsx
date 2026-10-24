@@ -141,7 +141,7 @@ export default function Piece() {
 
   return (
     <div className="pb-12">
-      <PageHeader eyebrow="Practise" title={loaded?.item.title ?? (error ? "Piece not found" : "Loading…")}>
+      <PageHeader eyebrow="Song library" title={loaded?.item.title ?? (error ? "Piece not found" : "Loading…")}>
         {loaded && (
           <>
             {loaded.item.composer}

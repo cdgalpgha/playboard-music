@@ -39,7 +39,7 @@ test("a lesson shows sheet music, follows playback, and records completion", asy
   await expect(page.getByTestId("measure-highlight")).not.toHaveAttribute("data-measure", "0", { timeout: 15_000 });
   await expect(page.getByText("Lesson complete.")).toBeVisible({ timeout: 40_000 });
   await expect(page.getByRole("link", { name: /Next: Five fingers in C position/ })).toBeVisible();
-  await page.getByRole("link", { name: "Learn", exact: true }).click();
+  await page.getByRole("link", { name: "Learn to play", exact: true }).click();
   await expect(page.getByRole("link", { name: /Meet middle C \(completed\)/ })).toBeVisible();
 });
 

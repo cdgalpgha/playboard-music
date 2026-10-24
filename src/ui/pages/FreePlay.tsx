@@ -1,4 +1,8 @@
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
+import { Link, useNavigate } from "react-router";
+import { videoIdFrom } from "@/video/youtube-api.ts";
+import { ChordControls, KeyGuide } from "../ChordControls.tsx";
+import { PracticeRoom } from "../PracticeRoom.tsx";
 import { useMediaQuery } from "../useMediaQuery.ts";
 import { engine, type MixSettings } from "@/audio/engine.ts";
 import { Metronome } from "@/audio/metronome.ts";
@@ -233,20 +237,18 @@ export default function FreePlay() {
 
   return (
     <div className="pb-12">
-      <PageHeader eyebrow="Free play" title="The studio grand">
-        Salamander Grand Piano (Yamaha C5) with velocity layers, damper and release sounds, sustain-pedal resonance and
-        pedal mechanics. Play with a MIDI keyboard, the on-screen keys, or your computer keyboard.
+      <PageHeader eyebrow="Play studio" title="Less thinking. More playing.">
+        Press a letter from A to G on your computer keyboard and you're playing a chord. Plug in a piano keyboard and it
+        just works. Nothing to set up.
       </PageHeader>
 
       <div className="space-y-4 px-4 lg:px-8">
-        <section className="overflow-hidden rounded-2xl bg-stage text-white shadow-lg" aria-label="Instrument">
+        <section className="overflow-hidden rounded-2xl bg-stage text-white shadow-lg" aria-label="Piano">
           <div className="flex flex-wrap items-center gap-x-6 gap-y-3 px-4 py-3 lg:px-5">
             <div className="min-w-0 flex-1">
-              <div className="text-[11px] font-semibold tracking-[0.14em] text-white/50 uppercase">
-                {TIER_LABELS[tier].name} tier · {voices} voices
-              </div>
+              <div className="text-[11px] font-semibold tracking-[0.14em] text-white/50 uppercase">Now playing</div>
               {chords && (
-                <div className="text-2xl font-bold" aria-live="polite" data-testid="current-chord">
+                <div className="font-display text-2xl font-bold" aria-live="polite" data-testid="current-chord">
                   {lastChord || "Press A–G"}
                 </div>
               )}
@@ -275,41 +277,18 @@ export default function FreePlay() {
               </button>
             </div>
           )}
+          <div className="space-y-2 bg-paper px-4 py-3 text-ink lg:px-5">
+            <ChordControls />
+            <KeyGuide />
+          </div>
         </section>
 
         <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-ink-soft">
           <span>
-            {midiDevices.length ? `MIDI: ${midiDevices.map((d) => d.name).join(", ")}` : "No MIDI keyboard connected"}
+            {midiDevices.length
+              ? `Piano keyboard connected: ${midiDevices.map((d) => d.name).join(", ")}`
+              : "No piano keyboard connected. That's fine: use your computer keys or tap the keys above."}
           </span>
-          <div className="inline-flex rounded-lg border border-line bg-white p-0.5" role="group" aria-label="Computer keys">
-            {(["chords", "notes"] as const).map((m) => (
-              <button
-                key={m}
-                type="button"
-                aria-pressed={qwertyMode === m}
-                className={`rounded-md px-3 py-1 font-semibold ${qwertyMode === m ? "bg-green text-white" : "text-ink-soft"}`}
-                onClick={(e) => {
-                  inputStore.setState({ qwertyMode: m, lastChord: "" });
-                  e.currentTarget.blur();
-                }}
-              >
-                {m === "chords" ? "Chord mode" : "Piano mode"}
-              </button>
-            ))}
-          </div>
-          {chords ? (
-            <span>
-              <span className="kbd">A</span>–<span className="kbd">G</span> major, <span className="kbd">Shift</span> +
-              key minor, <span className="kbd">Space</span> + key sharp, <span className="kbd">Z</span>/
-              <span className="kbd">X</span> octave (C{qwertyOctave})
-            </span>
-          ) : (
-            <span>
-              Computer keys <span className="kbd">A</span>–<span className="kbd">'</span> play from C{qwertyOctave},{" "}
-              <span className="kbd">Z</span>/<span className="kbd">X</span> octave, <span className="kbd">Space</span>{" "}
-              sustain
-            </span>
-          )}
           {range.keys !== 88 && (
             <button type="button" className="underline" onClick={() => setFull(!full)}>
               {full ? `Show my ${range.keys} keys` : "Show all 88 keys"}
@@ -317,25 +296,27 @@ export default function FreePlay() {
           )}
         </div>
 
-        <div className="grid gap-4 xl:grid-cols-2">
-          <section className="card space-y-4" aria-labelledby="sound-title">
-            <h2 id="sound-title" className="text-base font-bold">
-              Sound
-            </h2>
+        <div className="grid gap-4 xl:grid-cols-[3fr_2fr]">
+          <PracticeRoom />
+          <BackingBand />
+        </div>
+
+        <details className="card group">
+          <summary className="cursor-pointer text-base font-bold">
+            Sound, metronome and recording <span className="ml-2 text-xs font-normal text-muted group-open:hidden">Optional</span>
+          </summary>
+          <div className="mt-4 grid gap-6 xl:grid-cols-2">
             <div className="grid gap-4 sm:grid-cols-2">
               <Slider label="Volume" value={mix.volume} onChange={(v) => update({ volume: v })} />
-              <Slider label="Room" value={mix.room} onChange={(v) => update({ room: v })} />
+              <Slider label="Room echo" value={mix.room} onChange={(v) => update({ room: v })} />
               <Slider
-                label="Touch dynamics"
+                label="Touch"
                 value={mix.dynamics}
                 onChange={(v) => update({ dynamics: v })}
-                format={(v) => (v < 0.3 ? "Flat" : v < 0.7 ? "Natural" : "Wide")}
+                format={(v) => (v < 0.3 ? "Even" : v < 0.7 ? "Natural" : "Expressive")}
               />
-              <Slider label="Pedal resonance" value={mix.resonance} onChange={(v) => update({ resonance: v })} />
-              <Slider label="Release noise" value={mix.releaseNoise} onChange={(v) => update({ releaseNoise: v })} />
-              <Slider label="Pedal noise" value={mix.pedalNoise} onChange={(v) => update({ pedalNoise: v })} />
               <Slider
-                label="Computer-key velocity"
+                label="Computer-key loudness"
                 value={qwertyVelocity}
                 min={20}
                 max={127}
@@ -344,38 +325,93 @@ export default function FreePlay() {
                 onChange={(v) => inputStore.setState({ qwertyVelocity: v })}
               />
             </div>
-          </section>
+            <div className="space-y-5">
+              <MetronomeControl />
+              <RecorderControl />
+              <p className="text-xs text-muted">
+                Recordings stay in this tab until you leave the page. Save them as audio (WAV) or as notes (MIDI).
+              </p>
+            </div>
+          </div>
+        </details>
 
-          <section className="card space-y-5" aria-labelledby="tools-title">
-            <h2 id="tools-title" className="text-base font-bold">
-              Practice tools
-            </h2>
-            <MetronomeControl />
-            <RecorderControl />
-            <p className="text-xs text-muted">
-              Takes stay in this tab until you leave the page. Export WAV saves the piano with room sound, without the
-              metronome; Export MIDI saves the notes, velocities and pedal. Up to 10 minutes per take.
-            </p>
-          </section>
-        </div>
-
-        <LatencyPanel />
-
-        <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-          <div className="card">
-            <Stat label="Polyphony" value="96 voices" hint="plus 48 release/pedal voices" />
+        <details className="card group">
+          <summary className="cursor-pointer text-base font-bold">For advanced players</summary>
+          <div className="mt-4 space-y-4">
+            <div className="grid gap-4 sm:grid-cols-3">
+              <Slider label="Pedal resonance" value={mix.resonance} onChange={(v) => update({ resonance: v })} />
+              <Slider label="Key release noise" value={mix.releaseNoise} onChange={(v) => update({ releaseNoise: v })} />
+              <Slider label="Pedal noise" value={mix.pedalNoise} onChange={(v) => update({ pedalNoise: v })} />
+            </div>
+            <LatencyPanel />
+            <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+              <Stat label="Piano" value="Salamander Grand" hint={`${TIER_LABELS[tier].name} sound · ${voices} voices playing`} />
+              <Stat label="Polyphony" value="96 voices" hint="plus 48 release/pedal voices" />
+              <Stat label="Source" value="48 kHz / 24-bit" hint="Yamaha C5 recordings" />
+              <Stat label="Keyboard" value={`${range.keys} keys`} hint={`${noteName(range.low)}–${noteName(range.high)}`} />
+            </div>
           </div>
-          <div className="card">
-            <Stat label="Engine" value="AudioWorklet" hint="4-point interpolation" />
-          </div>
-          <div className="card">
-            <Stat label="Source" value="48 kHz / 24-bit" hint="Salamander Grand V3" />
-          </div>
-          <div className="card">
-            <Stat label="Keyboard" value={`${range.keys} keys`} hint={`${noteName(range.low)}–${noteName(range.high)}`} />
-          </div>
-        </div>
+        </details>
       </div>
     </div>
+  );
+}
+
+function BackingBand() {
+  const navigate = useNavigate();
+  const [link, setLink] = useState("");
+  const [error, setError] = useState("");
+  return (
+    <section className="card flex flex-col gap-4" aria-labelledby="band-title">
+      <div className="flex items-start justify-between">
+        <div>
+          <div className="eyebrow">Your backing band</div>
+          <h2 id="band-title" className="mt-1 text-xl font-bold">
+            Play over any song.
+          </h2>
+        </div>
+        <span className="text-green">
+          <Icon name="youtube" size={24} />
+        </span>
+      </div>
+      <p className="text-sm text-ink-soft">
+        Bring a YouTube song, karaoke or backing track and play along. The video stays visible with its creator
+        credited.
+      </p>
+      <form
+        className="flex gap-2"
+        onSubmit={(e) => {
+          e.preventDefault();
+          const id = videoIdFrom(link);
+          if (id) navigate(`/play-along?v=${id}`);
+          else setError("Paste a YouTube link, like youtube.com/watch?v=…");
+        }}
+      >
+        <label htmlFor="band-link" className="sr-only">
+          YouTube link
+        </label>
+        <input
+          id="band-link"
+          className="input-select min-w-0 flex-1"
+          placeholder="Paste a YouTube link…"
+          value={link}
+          onChange={(e) => {
+            setLink(e.target.value);
+            setError("");
+          }}
+        />
+        <button className="btn-primary" aria-label="Open video">
+          <Icon name="arrow" />
+        </button>
+      </form>
+      {error && (
+        <p role="alert" className="-mt-2 text-xs text-bad">
+          {error}
+        </p>
+      )}
+      <Link to="/play-along" className="mt-auto text-sm font-semibold text-green underline">
+        Open the play-along room
+      </Link>
+    </section>
   );
 }

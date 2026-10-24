@@ -26,6 +26,9 @@ export interface InputState {
   qwertyVelocity: number;
   /** Computer keys play chords (A–G, Shift minor, Space sharp) or single notes. */
   qwertyMode: "chords" | "notes";
+  chordVoicing: "triads" | "sevenths";
+  /** Semitones added to chord keys. */
+  chordTranspose: number;
   /** Chord keys only apply on pages that turn them on (free play); lessons always use single notes. */
   chordKeysActive: boolean;
   lastChord: string;
@@ -60,6 +63,8 @@ export const inputStore = createStore<InputState>(() => ({
   qwertyOctave: 4,
   qwertyVelocity: 88,
   qwertyMode: "chords",
+  chordVoicing: "triads",
+  chordTranspose: 0,
   chordKeysActive: false,
   lastChord: "",
   lastMidi: null,
