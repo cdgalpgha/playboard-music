@@ -55,7 +55,8 @@ test("import a MIDI file, edit key, tempo and hands, practise, then delete", asy
   expect(chart).toEqual({ first: 62, bpm: 50, left: 4 });
   await expect(page.getByText(/Imported by you from “little-tune.mid”/)).toBeVisible();
 
-  await page.getByRole("link", { name: "Import", exact: true }).click();
+  await page.getByRole("link", { name: "Song library", exact: true }).click();
+  await page.getByRole("link", { name: "Add your own song file" }).click();
   await expect(page.getByRole("region", { name: "My library" }).or(page.locator("section", { hasText: "My library" })).first()).toContainText("Little tune");
   page.once("dialog", (d) => void d.accept());
   await page.getByRole("button", { name: "Delete" }).click();
